@@ -7,7 +7,6 @@ module.exports = defineConfig({
       '/api': {
         target: 'http://localhost:8081',
         changeOrigin: true,
-        // pathRewrite: {'^/api': ''} // 如果后端接口不带 /api 前缀，可以启用这行
       }
     }
   }
