@@ -4,47 +4,70 @@ project(celestial_simulation)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Add OpenMP support for macOS
+# 检测操作系统
 if(APPLE)
+    # macOS特定配置
     if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-        set(OpenMP_C "${CMAKE_C_COMPILER}")
-        set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include")
-        set(OpenMP_C_LIB_NAMES "omp")
-        set(OpenMP_omp_LIBRARY "/opt/homebrew/opt/libomp/lib/libomp.dylib")
-    endif()
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
-        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include")
-        set(OpenMP_CXX_LIB_NAMES "omp")
-        set(OpenMP_omp_LIBRARY "/opt/homebrew/opt/libomp/lib/libomp.dylib")
+        # 对于Apple Clang，需要特殊处理OpenMP
+        execute_process(
+            COMMAND brew --prefix libomp
+            OUTPUT_VARIABLE OPENMP_PREFIX
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if(OPENMP_PREFIX)
+            set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp -I${OPENMP_PREFIX}/include")
+            set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I${OPENMP_PREFIX}/include")
+            set(OpenMP_C_LIB_NAMES "omp")
+            set(OpenMP_CXX_LIB_NAMES "omp")
+            set(OpenMP_omp_LIBRARY "${OPENMP_PREFIX}/lib/libomp.dylib")
+        endif()
     endif()
 endif()
 
+# 查找OpenMP
 find_package(OpenMP REQUIRED)
 
-# Add FetchContent for downloading dependencies
-include(FetchContent)
+# 查找nlohmann_json
+find_package(nlohmann_json QUIET)
+if(NOT nlohmann_json_FOUND)
+    # 如果没有找到系统安装的nlohmann_json，使用FetchContent下载
+    include(FetchContent)
+    FetchContent_Declare(
+        json
+        URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
+    )
+    FetchContent_MakeAvailable(json)
+endif()
 
-# Add nlohmann_json
-FetchContent_Declare(
-    json
-    URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
-)
-
-# Configure nlohmann_json
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-FetchContent_MakeAvailable(json)
-
-# Add your source files
+# 添加可执行文件
 add_executable(celestial_simulation main.cpp)
 
-# Link libraries and include directories
-target_link_libraries(celestial_simulation PRIVATE 
-    nlohmann_json::nlohmann_json
-    OpenMP::OpenMP_CXX
-)
+# 链接OpenMP
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(celestial_simulation PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
-# Add include directories
-target_include_directories(celestial_simulation PRIVATE 
-    ${json_SOURCE_DIR}/include
-) 
+# 链接nlohmann_json
+if(nlohmann_json_FOUND)
+    target_link_libraries(celestial_simulation PRIVATE nlohmann_json::nlohmann_json)
+else()
+    target_link_libraries(celestial_simulation PRIVATE nlohmann_json::nlohmann_json)
+endif()
+
+# 设置编译选项
+if(MSVC)
+    # Windows with MSVC
+    target_compile_options(celestial_simulation PRIVATE /W4)
+else()
+    # Linux, macOS, and Windows with MinGW
+    target_compile_options(celestial_simulation PRIVATE -Wall -Wextra)
+endif()
+
+# 如果是Windows系统，设置可执行文件的输出目录
+if(WIN32)
+    set_target_properties(celestial_simulation PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}
+    )
+endif()
