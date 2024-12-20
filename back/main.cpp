@@ -11,14 +11,13 @@
 
 using json = nlohmann::json;
 
-// 物理常量
 namespace Constants {
-    const double G = 6.67430e-11;  // 万有引力常数
-    const double TIME_STEP = 86400.0;   // 时间步长（秒）- 调整为1天
-    const double THETA = 0.5;       // Barnes-Hut算法的精度参数
+    const double G = 6.67430e-11; 
+    const double TIME_STEP = 864000.0;   //10天
+    const double THETA = 0.5;      
 }
 
-// 三维向量类
+
 class Vector3D {
 private:
     double x_, y_, z_;
@@ -55,7 +54,6 @@ public:
     }
 };
 
-// 天体基类
 class CelestialBody {
 protected:
     std::string name_;
@@ -84,22 +82,13 @@ public:
     const Vector3D& getVelocity() const { return velocity_; }
     const Vector3D& getAcceleration() const { return acceleration_; }
 
-    // 更新状态
     virtual void updateState(double dt) {
-        // 使用Verlet积分方法提高精度
         Vector3D old_position = position_;
         Vector3D half_velocity = velocity_ + acceleration_ * (dt * 0.5);
         position_ = position_ + half_velocity * dt;
         velocity_ = half_velocity + acceleration_ * (dt * 0.5);
-
-        // 打印调试信息
-        std::cout << "Updating " << name_ << ":" << std::endl;
-        std::cout << "  Position: (" << position_.x() << ", " << position_.y() << ", " << position_.z() << ")" << std::endl;
-        std::cout << "  Velocity: (" << velocity_.x() << ", " << velocity_.y() << ", " << velocity_.z() << ")" << std::endl;
-        std::cout << "  Acceleration: (" << acceleration_.x() << ", " << acceleration_.y() << ", " << acceleration_.z() << ")" << std::endl;
     }
 
-    // 转换为JSON
     virtual json toJson() const {
         return {
             {"name", name_},
@@ -112,7 +101,6 @@ public:
     }
 };
 
-// 八叉树节点类，用于Barnes-Hut算法
 class OctreeNode {
 private:
     Vector3D center_;
@@ -141,7 +129,6 @@ public:
         int octant = getOctant(body->getPosition());
         children_[octant]->insert(body);
 
-        // 更新质心
         totalMass_ += body->getMass();
         centerOfMass_ = centerOfMass_ * (totalMass_ - body->getMass()) + 
                        body->getPosition() * body->getMass();
@@ -198,7 +185,6 @@ private:
     }
 };
 
-// Barnes-Hut模拟器
 class BarnesHutSimulator {
 private:
     std::vector<std::shared_ptr<CelestialBody>> bodies_;
@@ -216,16 +202,13 @@ public:
     }
 
     void step() {
-        // 构建八叉树
         OctreeNode root(Vector3D(0, 0, 0), universeSize_);
         for (const auto& body : bodies_) {
             root.insert(body);
         }
 
-        // 并行计算每个天体的加速度
         #pragma omp parallel for
         for (size_t i = 0; i < bodies_.size(); ++i) {
-            // 跳过太阳
             if (bodies_[i]->getName() == "Sun") {
                 bodies_[i]->acceleration_ = Vector3D(0, 0, 0);
                 continue;
@@ -234,10 +217,8 @@ public:
             bodies_[i]->acceleration_ = force * (1.0 / bodies_[i]->getMass());
         }
 
-        // 更新位置和速度
         #pragma omp parallel for
         for (size_t i = 0; i < bodies_.size(); ++i) {
-            // 跳过太阳
             if (bodies_[i]->getName() == "Sun") {
                 bodies_[i]->position_ = Vector3D(0, 0, 0);
                 bodies_[i]->velocity_ = Vector3D(0, 0, 0);
@@ -256,18 +237,16 @@ public:
     }
 };
 
-// 经典N体模拟器
 class NewtonianSimulator {
 private:
     std::vector<std::shared_ptr<CelestialBody>> bodies_;
 
-    // 计算两个天体间的引力
     Vector3D calculateGravitationalForce(const CelestialBody& body1, const CelestialBody& body2) {
         Vector3D r = body2.getPosition() - body1.getPosition();
         double distance = r.magnitude();
         
         if (distance < (body1.getRadius() + body2.getRadius())) {
-            return Vector3D(0, 0, 0);  // 防止碰撞时的无限大力
+            return Vector3D(0, 0, 0);  
         }
 
         double forceMagnitude = Constants::G * body1.getMass() * body2.getMass() / 
@@ -281,11 +260,8 @@ public:
     }
 
     void step() {
-        std::cout << "\nNewtonianSimulator step:" << std::endl;
-        // 计算每个天体的合力和加速度
         #pragma omp parallel for
         for (size_t i = 0; i < bodies_.size(); ++i) {
-            // 跳过太阳（假设太阳是第一个天体）
             if (bodies_[i]->getName() == "Sun") {
                 bodies_[i]->acceleration_ = Vector3D(0, 0, 0);
                 continue;
@@ -297,20 +273,13 @@ public:
                     Vector3D force = calculateGravitationalForce(*bodies_[i], *bodies_[j]);
                     totalForce = totalForce + force;
                     
-                    // 打印引力计算调试信息
-                    std::cout << "Force between " << bodies_[i]->getName() 
-                              << " and " << bodies_[j]->getName() << ": ("
-                              << force.x() << ", " << force.y() << ", " 
-                              << force.z() << ")" << std::endl;
                 }
             }
             bodies_[i]->acceleration_ = totalForce * (1.0 / bodies_[i]->getMass());
         }
 
-        // 更新位置和速度
         #pragma omp parallel for
         for (size_t i = 0; i < bodies_.size(); ++i) {
-            // 跳过太阳
             if (bodies_[i]->getName() == "Sun") {
                 bodies_[i]->position_ = Vector3D(0, 0, 0);
                 bodies_[i]->velocity_ = Vector3D(0, 0, 0);
@@ -412,8 +381,12 @@ int main() {
     // 初始化两种拟器
     initializeBodies(newtonianSimulator);
     initializeBodies(barnesHutSimulator);
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+/////////////////和前端进行通信//////////////////////////////
+////////////////////////////////////////////////////////////
 
-    // 设置CORS头
+
     svr.set_base_dir("./public");
     svr.set_default_headers({
         {"Access-Control-Allow-Origin", "*"},
@@ -421,14 +394,12 @@ int main() {
         {"Access-Control-Allow-Headers", "Content-Type"}
     });
 
-    // API端点：获取当前系统状态
     svr.Get("/api/system-state", [](const httplib::Request& req, httplib::Response& res) {
         bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
         json state = useBarnesHut ? barnesHutSimulator.getSystemState() : newtonianSimulator.getSystemState();
         res.set_content(state.dump(), "application/json");
     });
 
-    // API端点：执行模拟步骤
     svr.Post("/api/simulate", [](const httplib::Request& req, httplib::Response& res) {
         bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
         if (useBarnesHut) {

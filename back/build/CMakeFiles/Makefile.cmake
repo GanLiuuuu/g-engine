@@ -11,10 +11,6 @@ set(CMAKE_MAKEFILE_DEPENDS
   "CMakeFiles/3.29.4/CMakeCCompiler.cmake"
   "CMakeFiles/3.29.4/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.29.4/CMakeSystem.cmake"
-  "_deps/json-src/CMakeLists.txt"
-  "_deps/json-src/cmake/config.cmake.in"
-  "_deps/json-src/cmake/nlohmann_jsonConfigVersion.cmake.in"
-  "_deps/json-src/cmake/pkg-config.pc.in"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/CMakeCCompiler.cmake.in"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/CMakeCCompilerABI.c"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/CMakeCInformation.cmake"
@@ -34,7 +30,6 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/CMakeGenericSystem.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/CMakeInitializeConfigs.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/CMakeLanguageInformation.cmake"
-  "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/CMakePackageConfigHelpers.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/CMakeParseImplicitIncludeInfo.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/CMakeParseImplicitLinkInfo.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/CMakeParseLibraryArchitecture.cmake"
@@ -103,14 +98,9 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/Compiler/XLClang-CXX-DetermineCompiler.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/Compiler/zOS-C-DetermineCompiler.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/Compiler/zOS-CXX-DetermineCompiler.cmake"
-  "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/ExternalProject.cmake"
-  "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/ExternalProject/shared_internal_commands.cmake"
-  "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/FetchContent.cmake"
-  "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/FetchContent/CMakeLists.cmake.in"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/FindOpenMP.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/FindPackageHandleStandardArgs.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/FindPackageMessage.cmake"
-  "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/GNUInstallDirs.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/Internal/CMakeDetermineLinkerId.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/Internal/FeatureTesting.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/Platform/Apple-AppleClang-C.cmake"
@@ -122,7 +112,9 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/Platform/Darwin-Initialize.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/Platform/Darwin.cmake"
   "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/Platform/UnixPaths.cmake"
-  "/opt/homebrew/Cellar/cmake/3.29.4/share/cmake/Modules/WriteBasicConfigVersionFile.cmake"
+  "/opt/homebrew/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake"
+  "/opt/homebrew/share/cmake/nlohmann_json/nlohmann_jsonConfigVersion.cmake"
+  "/opt/homebrew/share/cmake/nlohmann_json/nlohmann_jsonTargets.cmake"
   )
 
 # The corresponding makefile is:
@@ -138,12 +130,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/3.29.4/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.29.4/CMakeCCompiler.cmake"
   "CMakeFiles/3.29.4/CMakeCXXCompiler.cmake"
-  "_deps/json-subbuild/CMakeLists.txt"
   "CMakeFiles/CMakeDirectoryInformation.cmake"
-  "_deps/json-build/nlohmann_json.pc"
-  "_deps/json-build/nlohmann_jsonConfigVersion.cmake"
-  "_deps/json-build/nlohmann_jsonConfig.cmake"
-  "_deps/json-build/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
