@@ -24,7 +24,6 @@ public:
 
     virtual ~CelestialBody() = default;
 
-    // Getters
     const std::string& getName() const { return name_; }
     double getMass() const { return mass_; }
     double getRadius() const { return radius_; }
@@ -32,12 +31,10 @@ public:
     const Vector3D& getVelocity() const { return velocity_; }
     const Vector3D& getAcceleration() const { return acceleration_; }
 
-    // Setters
     void setPosition(const Vector3D& pos) { position_ = pos; }
     void setVelocity(const Vector3D& vel) { velocity_ = vel; }
     void setAcceleration(const Vector3D& acc) { acceleration_ = acc; }
 
-    // 更新状态
     virtual void updateState(double dt) {
         const auto& config = SimulationConfig::getInstance();
         double effectiveTimeStep = config.timeDirectionForward ? dt : -dt;
@@ -48,7 +45,6 @@ public:
         velocity_ = half_velocity + acceleration_ * (effectiveTimeStep * 0.5);
     }
 
-    // JSON序列化
     virtual nlohmann::json toJson() const {
         return {
             {"name", name_},
@@ -71,4 +67,4 @@ public:
     }
 };
 
-} // namespace GEngine 
+}

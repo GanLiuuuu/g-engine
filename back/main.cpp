@@ -7,11 +7,9 @@
 
 using namespace GEngine;
 
-// 全局模拟器实例
 std::unique_ptr<ISimulator> newtonianSimulator = std::make_unique<NewtonianSimulator>();
 std::unique_ptr<ISimulator> barnesHutSimulator = std::make_unique<BarnesHutSimulator>();
 
-// 初始化太阳系
 void initializeSolarSystem(ISimulator& simulator) {
     simulator.clear();
 
@@ -63,7 +61,6 @@ void initializeSolarSystem(ISimulator& simulator) {
         Vector3D(2.871e12, 0, 0), Vector3D(0, 6.80e3, 0)
     ));
 
-    // 海王星
     simulator.addBody(std::make_shared<CelestialBody>(
         "Neptune", 1.024e26, 24622000,
         Vector3D(4.495e12, 0, 0), Vector3D(0, 5.43e3, 0)
@@ -73,24 +70,20 @@ void initializeSolarSystem(ISimulator& simulator) {
 int main() {
     httplib::Server svr;
 
-    // 设置CORS头
     auto setCorsHeaders = [](httplib::Response& res) {
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         res.set_header("Access-Control-Allow-Headers", "Content-Type");
     };
 
-    // 处理OPTIONS请求
     svr.Options("/(.*)", [&setCorsHeaders](const httplib::Request&, httplib::Response& res) {
         setCorsHeaders(res);
         res.set_content("", "text/plain");
     });
 
-    // 初始化两种模拟器
     initializeSolarSystem(*newtonianSimulator);
     initializeSolarSystem(*barnesHutSimulator);
 
-    // 获取系统状态的API
     svr.Get("/api/system-state", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
         setCorsHeaders(res);
         bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
@@ -100,7 +93,6 @@ int main() {
         res.set_content(state.dump(), "application/json");
     });
 
-    // 模拟步进的API
     svr.Post("/api/simulate", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
         setCorsHeaders(res);
         try {
@@ -132,7 +124,6 @@ int main() {
         }
     });
 
-    // 时间跳转API
     svr.Post("/api/jump-time", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
         setCorsHeaders(res);
         try {
@@ -148,7 +139,7 @@ int main() {
             double days = params["days"].get<double>();
             int steps = static_cast<int>((days * 24 * 3600) / config.timeStep);
 
-            // 执行多步模拟
+            // 执行多步模���
             for (int i = 0; i < steps; ++i) {
                 simulator.step();
             }
@@ -164,7 +155,6 @@ int main() {
         }
     });
 
-    // 重置模拟的API
     svr.Post("/api/reset", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
         setCorsHeaders(res);
         bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
@@ -177,7 +167,6 @@ int main() {
         res.set_content(state.dump(), "application/json");
     });
 
-    // 配置模拟参数的API
     svr.Post("/api/configure", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
         setCorsHeaders(res);
         try {
@@ -196,7 +185,6 @@ int main() {
         }
     });
 
-    // 导出系统配置的API
     svr.Get("/api/export-config", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
         setCorsHeaders(res);
         nlohmann::json config;
@@ -210,7 +198,6 @@ int main() {
         res.set_content(config.dump(2), "application/json");
     });
 
-    // 导入系统配置的API
     svr.Post("/api/import-config", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
         setCorsHeaders(res);
         try {
@@ -240,7 +227,34 @@ int main() {
         }
     });
 
-    // 启动服务器
+    // 获取引力场数据的API
+    svr.Get("/api/gravitational-field", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
+        try {
+            bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
+            auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
+
+            // 获取查询参数
+            double centerX = req.has_param("centerX") ? std::stod(req.get_param_value("centerX")) : 0.0;
+            double centerY = req.has_param("centerY") ? std::stod(req.get_param_value("centerY")) : 0.0;
+            double centerZ = req.has_param("centerZ") ? std::stod(req.get_param_value("centerZ")) : 0.0;
+            double size = req.has_param("size") ? std::stod(req.get_param_value("size")) : 1e12;
+            int resolution = req.has_param("resolution") ? std::stoi(req.get_param_value("resolution")) : 10;
+
+            // 计算引力场数据
+            Vector3D center(centerX, centerY, centerZ);
+            nlohmann::json fieldData = simulator.getGravitationalFieldData(center, size, resolution);
+            
+            res.set_content(fieldData.dump(), "application/json");
+        } catch (const std::exception& e) {
+            res.set_content(
+                nlohmann::json({{"error", e.what()}}).dump(),
+                "application/json"
+            );
+            res.status = 400;
+        }
+    });
+
     svr.listen("localhost", 8081);
     return 0;
 }

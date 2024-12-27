@@ -26,6 +26,44 @@ public:
     
     // 配置
     virtual void configure(const nlohmann::json& config) = 0;
+
+    // 引力场计算
+    virtual Vector3D calculateGravitationalField(const Vector3D& position) const = 0;
+    
+    // 获取引力场数据
+    virtual nlohmann::json getGravitationalFieldData(
+        const Vector3D& center,
+        double size,
+        int resolution
+    ) const {
+        nlohmann::json fieldData = nlohmann::json::array();
+        double step = size / resolution;
+        
+        for (int x = 0; x < resolution; ++x) {
+            for (int y = 0; y < resolution; ++y) {
+                for (int z = 0; z < resolution; ++z) {
+                    Vector3D pos(
+                        center.x() + (x - resolution/2) * step,
+                        center.y() + (y - resolution/2) * step,
+                        center.z() + (z - resolution/2) * step
+                    );
+                    
+                    Vector3D field = calculateGravitationalField(pos);
+                    double magnitude = field.magnitude();
+                    
+                    if (magnitude > 1e-10) {  // 只记录有意义的数据点
+                        fieldData.push_back({
+                            {"position", pos.toJson()},
+                            {"field", field.toJson()},
+                            {"magnitude", magnitude}
+                        });
+                    }
+                }
+            }
+        }
+        
+        return fieldData;
+    }
 };
 
 } // namespace GEngine 

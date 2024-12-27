@@ -56,9 +56,8 @@ Vector3D OctreeNode::calculateForce(const CelestialBody& body) const {
     Vector3D r = centerOfMass_ - body.getPosition();
     double distance = r.magnitude();
     
-    // 如果节点足够远，使用质心近似
     if (size_ / distance < SimulationConfig::getInstance().barnesHutTheta) {
-        if (distance > 0) {  // 避免自身引力
+        if (distance > 0) { 
             double forceMagnitude = SimulationConfig::getInstance().gravityConstant * 
                                   totalMass_ * body.getMass() / 
                                   (distance * distance);
@@ -67,7 +66,6 @@ Vector3D OctreeNode::calculateForce(const CelestialBody& body) const {
         return Vector3D(0, 0, 0);
     }
 
-    // 否则递归计算子节点的力
     Vector3D totalForce(0, 0, 0);
     if (children_[0]) {
         for (const auto& child : children_) {
@@ -75,7 +73,7 @@ Vector3D OctreeNode::calculateForce(const CelestialBody& body) const {
         }
     } else {
         for (const auto& otherBody : bodies_) {
-            if (otherBody->getName() != body.getName()) {  // 避免自身引力
+            if (otherBody->getName() != body.getName()) { 
                 Vector3D r = otherBody->getPosition() - body.getPosition();
                 double distance = r.magnitude();
                 if (distance > 0) {
@@ -90,4 +88,4 @@ Vector3D OctreeNode::calculateForce(const CelestialBody& body) const {
     return totalForce;
 }
 
-} // namespace GEngine 
+} 

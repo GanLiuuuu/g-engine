@@ -13,6 +13,43 @@
         </label>
       </div>
 
+      <!-- 引力场控制面板 -->
+      <div class="field-control">
+        <h3>引力场可视化</h3>
+        <div class="field-toggle">
+          <button @click="toggleGravitationalField" :class="{ active: showGravitationalField }">
+            {{ showGravitationalField ? '隐藏引力场' : '显示引力场' }}
+          </button>
+        </div>
+        
+        <div class="field-settings" v-if="showGravitationalField">
+          <div class="field-resolution">
+            <label>分辨率</label>
+            <input 
+              type="range" 
+              v-model.number="fieldResolution" 
+              :min="3" 
+              :max="10" 
+              :disabled="isSimulating"
+              @change="updateGravitationalField"
+            >
+            <span>{{ fieldResolution }}</span>
+          </div>
+
+          <div class="field-size">
+            <label>显示范围 (AU)</label>
+            <input 
+              type="number" 
+              v-model.number="fieldSizeAU" 
+              :min="1" 
+              :max="100" 
+              :disabled="isSimulating"
+              @change="updateFieldSize"
+            >
+          </div>
+        </div>
+      </div>
+
       <!-- 时间控制面板 -->
       <div class="time-control">
         <h3>时间控制</h3>
@@ -103,7 +140,17 @@ export default {
       isSimulating: false,
       simulationInterval: null,
       algorithm: 'newton', // 默认使用牛顿算法
-      debugInfo: {} // 存储调试信息
+      debugInfo: {}, // 存储调试信息
+      timeDirection: 'forward',
+      timeStep: 3600,
+      jumpDays: 0,
+      showGravitationalField: false,  // 是否显示引力场
+      fieldArrows: [],  // 存储引力场箭头对象
+      fieldResolution: 8,  // 增加默认分辨率
+      fieldSize: 5e11,  // 减小默认显示范围，使引力场更集中
+      fieldSizeAU: 3,  // 对应的天文单位
+      fieldArrowScale: 5,  // 新增：箭头大小缩放因子
+      fieldArrowColor: 0x00ff00,  // 新增：箭头颜色
     };
   },
   mounted() {
@@ -139,6 +186,11 @@ export default {
         console.log('Received simulation data:', response.data);
         this.updateCelestialBodies(response.data);
         this.updateDebugInfo(response.data);
+        
+        // 如果引力场可视化开启，则更新引力场
+        if (this.showGravitationalField) {
+          await this.updateGravitationalField();
+        }
       } catch (error) {
         console.error('Error in simulation step:', error);
       }
@@ -159,7 +211,9 @@ export default {
     toggleSimulation() {
       this.isSimulating = !this.isSimulating;
       if (this.isSimulating) {
-        this.simulationInterval = setInterval(this.simulateStep, 1000); // 每秒更新一次
+        // 如果引力场可视化开启，增加更新频率
+        const updateInterval = this.showGravitationalField ? 500 : 1000;
+        this.simulationInterval = setInterval(this.simulateStep, updateInterval);
       } else {
         clearInterval(this.simulationInterval);
       }
@@ -474,6 +528,156 @@ export default {
       } catch (error) {
         console.error('Error jumping time:', error);
       }
+    },
+
+    async toggleGravitationalField() {
+      // 先清除现有的引力场
+      this.clearGravitationalField();
+      
+      this.showGravitationalField = !this.showGravitationalField;
+      
+      if (this.showGravitationalField) {
+        await this.updateGravitationalField();
+        // 如果正在模拟，调整更新频率
+        if (this.isSimulating) {
+          clearInterval(this.simulationInterval);
+          this.simulationInterval = setInterval(this.simulateStep, 500);
+        }
+      } else {
+        // 如果正在模拟，恢复正常更新频率
+        if (this.isSimulating) {
+          clearInterval(this.simulationInterval);
+          this.simulationInterval = setInterval(this.simulateStep, 1000);
+        }
+      }
+    },
+
+    clearGravitationalField() {
+      // 确保移除所有引力场箭头
+      if (this.fieldArrows && this.fieldArrows.length > 0) {
+        this.fieldArrows.forEach(arrow => {
+          if (arrow && scene) {
+            // 移除箭头的所有部分
+            if (arrow.cone) {
+              scene.remove(arrow.cone);
+              arrow.cone.geometry.dispose();
+              arrow.cone.material.dispose();
+            }
+            if (arrow.line) {
+              scene.remove(arrow.line);
+              arrow.line.geometry.dispose();
+              arrow.line.material.dispose();
+            }
+            scene.remove(arrow);
+          }
+        });
+        // 强制清空数组
+        this.fieldArrows.length = 0;
+      }
+      // 强制场景更新
+      if (renderer) {
+        renderer.renderLists.dispose();
+      }
+    },
+
+    async updateGravitationalField() {
+      try {
+        // 确保先完全清除现有的引力场
+        this.clearGravitationalField();
+        
+        // 等待一帧以确保清除完成
+        await new Promise(resolve => requestAnimationFrame(resolve));
+
+        // 如果引力场显示被关闭，直接返回
+        if (!this.showGravitationalField) {
+          return;
+        }
+
+        // 获取引力场数据
+        const response = await axios.get(
+          `http://localhost:8081/api/gravitational-field${this.algorithm === 'barnes-hut' ? '?algorithm=barnes-hut' : ''}`,
+          {
+            params: {
+              centerX: 0,
+              centerY: 0,
+              centerZ: 0,
+              size: this.fieldSize,
+              resolution: this.fieldResolution
+            }
+          }
+        );
+
+        const fieldData = response.data;
+        const scale = 1e-9;  // 缩放因子，与天体位置缩放一致
+
+        // 创建引力场箭头
+        fieldData.forEach(point => {
+          const position = new THREE.Vector3(
+            point.position[0] * scale,
+            point.position[1] * scale,
+            point.position[2] * scale
+          );
+
+          const direction = new THREE.Vector3(
+            -point.field[0],  // 反转方向，使箭头指向引力源
+            -point.field[1],
+            -point.field[2]
+          ).normalize();
+
+          // 根据引力场强度调整箭头长度
+          const length = Math.log10(point.magnitude) * this.fieldArrowScale;
+
+          // 创建箭头
+          const arrowHelper = new THREE.ArrowHelper(
+            direction,
+            position,
+            length,
+            this.fieldArrowColor,
+            length * 0.3,  // 增大箭头头部长度
+            length * 0.2   // 增大箭头头部宽度
+          );
+
+          // 设置箭头材质为发光材质
+          const arrowMaterial = new THREE.MeshBasicMaterial({
+            color: this.fieldArrowColor,
+            transparent: true,
+            opacity: 0.8,
+            emissive: this.fieldArrowColor,
+            emissiveIntensity: 1.0
+          });
+          
+          if (arrowHelper.cone) {
+            arrowHelper.cone.material = arrowMaterial;
+          }
+          if (arrowHelper.line) {
+            arrowHelper.line.material = arrowMaterial;
+          }
+
+          scene.add(arrowHelper);
+          this.fieldArrows.push(arrowHelper);
+        });
+
+        // 添加引力场强度指示器
+        const maxMagnitude = Math.max(...fieldData.map(point => point.magnitude));
+        console.log('Maximum field magnitude:', maxMagnitude);
+      } catch (error) {
+        console.error('Error updating gravitational field:', error);
+      }
+    },
+
+    updateFieldSize() {
+      this.fieldSize = this.fieldSizeAU * 1.496e11;  // 使用准确的天文单位转换
+      if (this.showGravitationalField) {
+        this.updateGravitationalField();
+      }
+    },
+  },
+  watch: {
+    // 当算法改变时更新引力场
+    algorithm() {
+      if (this.showGravitationalField) {
+        this.updateGravitationalField();
+      }
     }
   },
   beforeUnmount() {
@@ -682,5 +886,61 @@ button.active {
 
 .time-jump-controls button {
   padding: 5px 10px;
+}
+
+.field-control {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.field-control h3 {
+  margin: 0 0 10px 0;
+  color: #4CAF50;
+}
+
+.field-toggle button {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+.field-toggle button.active {
+  background-color: rgba(0, 255, 0, 0.3);
+}
+
+.field-settings {
+  margin-top: 10px;
+}
+
+.field-resolution,
+.field-size {
+  margin-bottom: 10px;
+}
+
+.field-resolution label,
+.field-size label {
+  display: block;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.field-resolution input[type="range"] {
+  width: calc(100% - 30px);
+  margin-right: 10px;
+}
+
+.field-resolution span {
+  color: white;
+}
+
+.field-size input {
+  width: 100%;
+  padding: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 4px;
 }
 </style>

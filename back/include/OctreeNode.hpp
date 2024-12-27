@@ -27,6 +27,13 @@ public:
 
     void insert(std::shared_ptr<CelestialBody> body);
     Vector3D calculateForce(const CelestialBody& body) const;
+
+    double getTotalMass() const { return totalMass_; }
+    const Vector3D& getCenterOfMass() const { return centerOfMass_; }
+    double getSize() const { return size_; }
+    const std::unique_ptr<OctreeNode>& getChild(int index) const { 
+        return children_[index]; 
+    }
 };
 
 } 
