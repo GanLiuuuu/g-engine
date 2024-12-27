@@ -49,7 +49,6 @@ set(SOURCES
 # 设置头文件目录
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# 创建静态库
 add_library(gengine_static STATIC ${SOURCES})
 if(nlohmann_json_FOUND)
     target_link_libraries(gengine_static PRIVATE OpenMP::OpenMP_CXX nlohmann_json::nlohmann_json)
@@ -58,7 +57,6 @@ else()
 endif()
 set_target_properties(gengine_static PROPERTIES OUTPUT_NAME "gengine")
 
-# 创建动态库
 add_library(gengine_shared SHARED ${SOURCES})
 if(nlohmann_json_FOUND)
     target_link_libraries(gengine_shared PRIVATE OpenMP::OpenMP_CXX nlohmann_json::nlohmann_json)

@@ -1,5 +1,5 @@
 CMakeFiles/server.dir/main.cpp.o: /Users/liugan/g-engine/back/main.cpp \
-  /Users/liugan/g-engine/back/./httplib.h \
+  /Users/liugan/g-engine/back/httplib.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/arpa/inet.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/sys/cdefs.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/sys/_symbol_aliasing.h \
@@ -1102,6 +1102,10 @@ CMakeFiles/server.dir/main.cpp.o: /Users/liugan/g-engine/back/main.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__chrono/literals.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/forward_list \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/unordered_set \
+  /Users/liugan/g-engine/back/include/NewtonianSimulator.hpp \
+  /Users/liugan/g-engine/back/include/ISimulator.hpp \
+  /Users/liugan/g-engine/back/include/CelestialBody.hpp \
+  /Users/liugan/g-engine/back/include/Vector3D.hpp \
   /opt/homebrew/include/nlohmann/json.hpp \
   /opt/homebrew/include/nlohmann/adl_serializer.hpp \
   /opt/homebrew/include/nlohmann/detail/abi_macros.hpp \
@@ -1149,4 +1153,6 @@ CMakeFiles/server.dir/main.cpp.o: /Users/liugan/g-engine/back/main.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/any \
   /opt/homebrew/include/nlohmann/detail/macro_unscope.hpp \
   /opt/homebrew/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
-  /opt/homebrew/opt/libomp/include/omp.h
+  /Users/liugan/g-engine/back/include/BarnesHutSimulator.hpp \
+  /Users/liugan/g-engine/back/include/OctreeNode.hpp \
+  /Users/liugan/g-engine/back/include/Config.hpp
