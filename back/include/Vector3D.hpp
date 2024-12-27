@@ -43,7 +43,6 @@ public:
         return *this;
     }
 
-    // JSON序列化
     nlohmann::json toJson() const {
         return {x_, y_, z_};
     }
@@ -53,4 +52,4 @@ public:
     }
 };
 
-} // namespace GEngine 
+} 

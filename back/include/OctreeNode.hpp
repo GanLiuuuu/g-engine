@@ -29,4 +29,4 @@ public:
     Vector3D calculateForce(const CelestialBody& body) const;
 };
 
-} // namespace GEngine 
+} 

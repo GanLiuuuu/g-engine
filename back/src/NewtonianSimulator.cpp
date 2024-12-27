@@ -72,4 +72,4 @@ void NewtonianSimulator::configure(const nlohmann::json& config) {
     SimulationConfig::getInstance().loadFromJson(config);
 }
 
-} // namespace GEngine 
+}
