@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libgengine.a CMakeFiles/gengine_static.dir/src/NewtonianSimulator.cpp.o CMakeFiles/gengine_static.dir/src/BarnesHutSimulator.cpp.o CMakeFiles/gengine_static.dir/src/OctreeNode.cpp.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libgengine.a

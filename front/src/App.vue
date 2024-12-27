@@ -238,9 +238,9 @@ export default {
         75,
         window.innerWidth / window.innerHeight,
         0.001,
-        1000
+        10000
       );
-      camera.position.set(0, 2, 5);
+      camera.position.set(0, 200, 200);
       camera.lookAt(0, 0, 0);
 
       renderer = new THREE.WebGLRenderer({
@@ -265,9 +265,12 @@ export default {
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.screenSpacePanning = false;
-      controls.minDistance = 0.1;
-      controls.maxDistance = 50;
-      controls.autoRotate = false; // 关闭自动旋转
+      controls.minDistance = 1;
+      controls.maxDistance = 1000;
+      controls.autoRotate = false;
+      controls.enableRotate = true;
+      controls.maxPolarAngle = Math.PI / 2;  // 限制相机不能移动到星系下方
+      controls.minPolarAngle = 0;  // 允许相机移动到正上方
 
       // 增强光照
       const ambientLight = new THREE.AmbientLight(0x404040, 1.0);  // 增加环境光强度

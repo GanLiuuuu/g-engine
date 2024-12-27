@@ -54,16 +54,18 @@ RM = /opt/homebrew/Cellar/cmake/3.29.4/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/liugan/Desktop/g-engine/back
+CMAKE_SOURCE_DIR = /Users/liugan/g-engine/back
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/liugan/Desktop/g-engine/back/build
+CMAKE_BINARY_DIR = /Users/liugan/g-engine/back/build
 
 #=============================================================================
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/celestial_simulation.dir/all
+all: CMakeFiles/gengine_static.dir/all
+all: CMakeFiles/gengine_shared.dir/all
+all: CMakeFiles/server.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -71,34 +73,88 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/celestial_simulation.dir/clean
+clean: CMakeFiles/gengine_static.dir/clean
+clean: CMakeFiles/gengine_shared.dir/clean
+clean: CMakeFiles/server.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/celestial_simulation.dir
+# Target rules for target CMakeFiles/gengine_static.dir
 
 # All Build rule for target.
-CMakeFiles/celestial_simulation.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/celestial_simulation.dir/build.make CMakeFiles/celestial_simulation.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/celestial_simulation.dir/build.make CMakeFiles/celestial_simulation.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/liugan/Desktop/g-engine/back/build/CMakeFiles --progress-num=1,2 "Built target celestial_simulation"
-.PHONY : CMakeFiles/celestial_simulation.dir/all
+CMakeFiles/gengine_static.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/liugan/g-engine/back/build/CMakeFiles --progress-num=5,6,7,8 "Built target gengine_static"
+.PHONY : CMakeFiles/gengine_static.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/celestial_simulation.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/Desktop/g-engine/back/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/celestial_simulation.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/Desktop/g-engine/back/build/CMakeFiles 0
-.PHONY : CMakeFiles/celestial_simulation.dir/rule
+CMakeFiles/gengine_static.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/g-engine/back/build/CMakeFiles 4
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/gengine_static.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/g-engine/back/build/CMakeFiles 0
+.PHONY : CMakeFiles/gengine_static.dir/rule
 
 # Convenience name for target.
-celestial_simulation: CMakeFiles/celestial_simulation.dir/rule
-.PHONY : celestial_simulation
+gengine_static: CMakeFiles/gengine_static.dir/rule
+.PHONY : gengine_static
 
 # clean rule for target.
-CMakeFiles/celestial_simulation.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/celestial_simulation.dir/build.make CMakeFiles/celestial_simulation.dir/clean
-.PHONY : CMakeFiles/celestial_simulation.dir/clean
+CMakeFiles/gengine_static.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/clean
+.PHONY : CMakeFiles/gengine_static.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/gengine_shared.dir
+
+# All Build rule for target.
+CMakeFiles/gengine_shared.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/liugan/g-engine/back/build/CMakeFiles --progress-num=1,2,3,4 "Built target gengine_shared"
+.PHONY : CMakeFiles/gengine_shared.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/gengine_shared.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/g-engine/back/build/CMakeFiles 4
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/gengine_shared.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/g-engine/back/build/CMakeFiles 0
+.PHONY : CMakeFiles/gengine_shared.dir/rule
+
+# Convenience name for target.
+gengine_shared: CMakeFiles/gengine_shared.dir/rule
+.PHONY : gengine_shared
+
+# clean rule for target.
+CMakeFiles/gengine_shared.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/clean
+.PHONY : CMakeFiles/gengine_shared.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/server.dir
+
+# All Build rule for target.
+CMakeFiles/server.dir/all: CMakeFiles/gengine_static.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/liugan/g-engine/back/build/CMakeFiles --progress-num=9,10 "Built target server"
+.PHONY : CMakeFiles/server.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/server.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/g-engine/back/build/CMakeFiles 6
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/server.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/g-engine/back/build/CMakeFiles 0
+.PHONY : CMakeFiles/server.dir/rule
+
+# Convenience name for target.
+server: CMakeFiles/server.dir/rule
+.PHONY : server
+
+# clean rule for target.
+CMakeFiles/server.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/clean
+.PHONY : CMakeFiles/server.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

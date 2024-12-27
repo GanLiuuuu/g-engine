@@ -8,7 +8,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/liugan/Desktop/g-engine/back/main.cpp" "CMakeFiles/celestial_simulation.dir/main.cpp.o" "gcc" "CMakeFiles/celestial_simulation.dir/main.cpp.o.d"
+  "/Users/liugan/g-engine/back/src/BarnesHutSimulator.cpp" "CMakeFiles/gengine_static.dir/src/BarnesHutSimulator.cpp.o" "gcc" "CMakeFiles/gengine_static.dir/src/BarnesHutSimulator.cpp.o.d"
+  "/Users/liugan/g-engine/back/src/NewtonianSimulator.cpp" "CMakeFiles/gengine_static.dir/src/NewtonianSimulator.cpp.o" "gcc" "CMakeFiles/gengine_static.dir/src/NewtonianSimulator.cpp.o.d"
+  "/Users/liugan/g-engine/back/src/OctreeNode.cpp" "CMakeFiles/gengine_static.dir/src/OctreeNode.cpp.o" "gcc" "CMakeFiles/gengine_static.dir/src/OctreeNode.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

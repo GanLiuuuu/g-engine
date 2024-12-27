@@ -1,3 +1,9 @@
-/Users/liugan/Desktop/g-engine/back/build/CMakeFiles/celestial_simulation.dir
-/Users/liugan/Desktop/g-engine/back/build/CMakeFiles/edit_cache.dir
-/Users/liugan/Desktop/g-engine/back/build/CMakeFiles/rebuild_cache.dir
+/Users/liugan/g-engine/back/build/CMakeFiles/gengine_static.dir
+/Users/liugan/g-engine/back/build/CMakeFiles/gengine_shared.dir
+/Users/liugan/g-engine/back/build/CMakeFiles/server.dir
+/Users/liugan/g-engine/back/build/CMakeFiles/edit_cache.dir
+/Users/liugan/g-engine/back/build/CMakeFiles/rebuild_cache.dir
+/Users/liugan/g-engine/back/build/CMakeFiles/list_install_components.dir
+/Users/liugan/g-engine/back/build/CMakeFiles/install.dir
+/Users/liugan/g-engine/back/build/CMakeFiles/install/local.dir
+/Users/liugan/g-engine/back/build/CMakeFiles/install/strip.dir

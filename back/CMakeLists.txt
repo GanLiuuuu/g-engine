@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
-project(celestial_simulation)
+project(g-engine VERSION 1.0.0)
 
+# 设置C++标准
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 检测操作系统
+# macOS特定配置
 if(APPLE)
-    # macOS特定配置
     if(CMAKE_C_COMPILER_ID MATCHES "Clang")
         # 对于Apple Clang，需要特殊处理OpenMP
         execute_process(
@@ -24,7 +24,7 @@ if(APPLE)
     endif()
 endif()
 
-# 查找OpenMP
+# 查找依赖包
 find_package(OpenMP REQUIRED)
 
 # 查找nlohmann_json
@@ -39,35 +39,52 @@ if(NOT nlohmann_json_FOUND)
     FetchContent_MakeAvailable(json)
 endif()
 
-# 添加可执行文件
-add_executable(celestial_simulation main.cpp)
+# 设置库的源文件
+set(SOURCES
+    src/NewtonianSimulator.cpp
+    src/BarnesHutSimulator.cpp
+    src/OctreeNode.cpp
+)
 
-# 链接OpenMP
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(celestial_simulation PRIVATE OpenMP::OpenMP_CXX)
-endif()
+# 设置头文件目录
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# 链接nlohmann_json
+# 创建静态库
+add_library(gengine_static STATIC ${SOURCES})
 if(nlohmann_json_FOUND)
-    target_link_libraries(celestial_simulation PRIVATE nlohmann_json::nlohmann_json)
+    target_link_libraries(gengine_static PRIVATE OpenMP::OpenMP_CXX nlohmann_json::nlohmann_json)
 else()
-    target_link_libraries(celestial_simulation PRIVATE nlohmann_json::nlohmann_json)
+    target_link_libraries(gengine_static PRIVATE OpenMP::OpenMP_CXX nlohmann_json::nlohmann_json)
+endif()
+set_target_properties(gengine_static PROPERTIES OUTPUT_NAME "gengine")
+
+# 创建动态库
+add_library(gengine_shared SHARED ${SOURCES})
+if(nlohmann_json_FOUND)
+    target_link_libraries(gengine_shared PRIVATE OpenMP::OpenMP_CXX nlohmann_json::nlohmann_json)
+else()
+    target_link_libraries(gengine_shared PRIVATE OpenMP::OpenMP_CXX nlohmann_json::nlohmann_json)
+endif()
+set_target_properties(gengine_shared PROPERTIES OUTPUT_NAME "gengine")
+
+# 创建可执行文件
+add_executable(server main.cpp)
+if(nlohmann_json_FOUND)
+    target_link_libraries(server PRIVATE gengine_static OpenMP::OpenMP_CXX nlohmann_json::nlohmann_json)
+else()
+    target_link_libraries(server PRIVATE gengine_static OpenMP::OpenMP_CXX nlohmann_json::nlohmann_json)
 endif()
 
-# 设置编译选项
-if(MSVC)
-    # Windows with MSVC
-    target_compile_options(celestial_simulation PRIVATE /W4)
-else()
-    # Linux, macOS, and Windows with MinGW
-    target_compile_options(celestial_simulation PRIVATE -Wall -Wextra)
-endif()
+# 安装规则
+install(TARGETS gengine_static gengine_shared
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+install(DIRECTORY include/ DESTINATION include/gengine)
 
-# 如果是Windows系统，设置可执行文件的输出目录
-if(WIN32)
-    set_target_properties(celestial_simulation PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}
-        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}
-    )
-endif()
+# 导出CMake配置
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/GEngineConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)

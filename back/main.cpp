@@ -209,21 +209,12 @@ public:
 
         #pragma omp parallel for
         for (size_t i = 0; i < bodies_.size(); ++i) {
-            if (bodies_[i]->getName() == "Sun") {
-                bodies_[i]->acceleration_ = Vector3D(0, 0, 0);
-                continue;
-            }
             Vector3D force = root.calculateForce(*bodies_[i]);
             bodies_[i]->acceleration_ = force * (1.0 / bodies_[i]->getMass());
         }
 
         #pragma omp parallel for
         for (size_t i = 0; i < bodies_.size(); ++i) {
-            if (bodies_[i]->getName() == "Sun") {
-                bodies_[i]->position_ = Vector3D(0, 0, 0);
-                bodies_[i]->velocity_ = Vector3D(0, 0, 0);
-                continue;
-            }
             bodies_[i]->updateState(Constants::TIME_STEP);
         }
     }
@@ -262,17 +253,11 @@ public:
     void step() {
         #pragma omp parallel for
         for (size_t i = 0; i < bodies_.size(); ++i) {
-            if (bodies_[i]->getName() == "Sun") {
-                bodies_[i]->acceleration_ = Vector3D(0, 0, 0);
-                continue;
-            }
-
             Vector3D totalForce(0, 0, 0);
             for (size_t j = 0; j < bodies_.size(); ++j) {
                 if (i != j) {
                     Vector3D force = calculateGravitationalForce(*bodies_[i], *bodies_[j]);
                     totalForce = totalForce + force;
-                    
                 }
             }
             bodies_[i]->acceleration_ = totalForce * (1.0 / bodies_[i]->getMass());
@@ -280,11 +265,6 @@ public:
 
         #pragma omp parallel for
         for (size_t i = 0; i < bodies_.size(); ++i) {
-            if (bodies_[i]->getName() == "Sun") {
-                bodies_[i]->position_ = Vector3D(0, 0, 0);
-                bodies_[i]->velocity_ = Vector3D(0, 0, 0);
-                continue;
-            }
             bodies_[i]->updateState(Constants::TIME_STEP);
         }
     }
@@ -309,7 +289,6 @@ BarnesHutSimulator barnesHutSimulator;
 int main() {
     httplib::Server svr;
 
-    // 初始化���体数据
     auto initializeBodies = [](auto& simulator) {
         simulator.clear();  // 清除现有天体
         

@@ -57,10 +57,10 @@ RM = /opt/homebrew/Cellar/cmake/3.29.4/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/liugan/Desktop/g-engine/back
+CMAKE_SOURCE_DIR = /Users/liugan/g-engine/back
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/liugan/Desktop/g-engine/back/build
+CMAKE_BINARY_DIR = /Users/liugan/g-engine/back/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -85,11 +85,56 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 .PHONY : rebuild_cache/fast
 
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+.PHONY : list_install_components/fast
+
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	/opt/homebrew/Cellar/cmake/3.29.4/bin/cmake -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	/opt/homebrew/Cellar/cmake/3.29.4/bin/cmake -P cmake_install.cmake
+.PHONY : install/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	/opt/homebrew/Cellar/cmake/3.29.4/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	/opt/homebrew/Cellar/cmake/3.29.4/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	/opt/homebrew/Cellar/cmake/3.29.4/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	/opt/homebrew/Cellar/cmake/3.29.4/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
+
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/Desktop/g-engine/back/build/CMakeFiles /Users/liugan/Desktop/g-engine/back/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/g-engine/back/build/CMakeFiles /Users/liugan/g-engine/back/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/Desktop/g-engine/back/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/liugan/g-engine/back/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -117,24 +162,50 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named celestial_simulation
+# Target rules for targets named gengine_static
 
 # Build rule for target.
-celestial_simulation: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 celestial_simulation
-.PHONY : celestial_simulation
+gengine_static: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gengine_static
+.PHONY : gengine_static
 
 # fast build rule for target.
-celestial_simulation/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/celestial_simulation.dir/build.make CMakeFiles/celestial_simulation.dir/build
-.PHONY : celestial_simulation/fast
+gengine_static/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/build
+.PHONY : gengine_static/fast
+
+#=============================================================================
+# Target rules for targets named gengine_shared
+
+# Build rule for target.
+gengine_shared: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gengine_shared
+.PHONY : gengine_shared
+
+# fast build rule for target.
+gengine_shared/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/build
+.PHONY : gengine_shared/fast
+
+#=============================================================================
+# Target rules for targets named server
+
+# Build rule for target.
+server: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 server
+.PHONY : server
+
+# fast build rule for target.
+server/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/build
+.PHONY : server/fast
 
 main.o: main.cpp.o
 .PHONY : main.o
 
 # target to build an object file
 main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/celestial_simulation.dir/build.make CMakeFiles/celestial_simulation.dir/main.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/main.cpp.o
 .PHONY : main.cpp.o
 
 main.i: main.cpp.i
@@ -142,7 +213,7 @@ main.i: main.cpp.i
 
 # target to preprocess a source file
 main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/celestial_simulation.dir/build.make CMakeFiles/celestial_simulation.dir/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/main.cpp.i
 .PHONY : main.cpp.i
 
 main.s: main.cpp.s
@@ -150,8 +221,89 @@ main.s: main.cpp.s
 
 # target to generate assembly for a file
 main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/celestial_simulation.dir/build.make CMakeFiles/celestial_simulation.dir/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/main.cpp.s
 .PHONY : main.cpp.s
+
+src/BarnesHutSimulator.o: src/BarnesHutSimulator.cpp.o
+.PHONY : src/BarnesHutSimulator.o
+
+# target to build an object file
+src/BarnesHutSimulator.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/src/BarnesHutSimulator.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/src/BarnesHutSimulator.cpp.o
+.PHONY : src/BarnesHutSimulator.cpp.o
+
+src/BarnesHutSimulator.i: src/BarnesHutSimulator.cpp.i
+.PHONY : src/BarnesHutSimulator.i
+
+# target to preprocess a source file
+src/BarnesHutSimulator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/src/BarnesHutSimulator.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/src/BarnesHutSimulator.cpp.i
+.PHONY : src/BarnesHutSimulator.cpp.i
+
+src/BarnesHutSimulator.s: src/BarnesHutSimulator.cpp.s
+.PHONY : src/BarnesHutSimulator.s
+
+# target to generate assembly for a file
+src/BarnesHutSimulator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/src/BarnesHutSimulator.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/src/BarnesHutSimulator.cpp.s
+.PHONY : src/BarnesHutSimulator.cpp.s
+
+src/NewtonianSimulator.o: src/NewtonianSimulator.cpp.o
+.PHONY : src/NewtonianSimulator.o
+
+# target to build an object file
+src/NewtonianSimulator.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/src/NewtonianSimulator.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/src/NewtonianSimulator.cpp.o
+.PHONY : src/NewtonianSimulator.cpp.o
+
+src/NewtonianSimulator.i: src/NewtonianSimulator.cpp.i
+.PHONY : src/NewtonianSimulator.i
+
+# target to preprocess a source file
+src/NewtonianSimulator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/src/NewtonianSimulator.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/src/NewtonianSimulator.cpp.i
+.PHONY : src/NewtonianSimulator.cpp.i
+
+src/NewtonianSimulator.s: src/NewtonianSimulator.cpp.s
+.PHONY : src/NewtonianSimulator.s
+
+# target to generate assembly for a file
+src/NewtonianSimulator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/src/NewtonianSimulator.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/src/NewtonianSimulator.cpp.s
+.PHONY : src/NewtonianSimulator.cpp.s
+
+src/OctreeNode.o: src/OctreeNode.cpp.o
+.PHONY : src/OctreeNode.o
+
+# target to build an object file
+src/OctreeNode.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/src/OctreeNode.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/src/OctreeNode.cpp.o
+.PHONY : src/OctreeNode.cpp.o
+
+src/OctreeNode.i: src/OctreeNode.cpp.i
+.PHONY : src/OctreeNode.i
+
+# target to preprocess a source file
+src/OctreeNode.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/src/OctreeNode.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/src/OctreeNode.cpp.i
+.PHONY : src/OctreeNode.cpp.i
+
+src/OctreeNode.s: src/OctreeNode.cpp.s
+.PHONY : src/OctreeNode.s
+
+# target to generate assembly for a file
+src/OctreeNode.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_static.dir/build.make CMakeFiles/gengine_static.dir/src/OctreeNode.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/gengine_shared.dir/build.make CMakeFiles/gengine_shared.dir/src/OctreeNode.cpp.s
+.PHONY : src/OctreeNode.cpp.s
 
 # Help Target
 help:
@@ -160,11 +312,26 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
+	@echo "... install"
+	@echo "... install/local"
+	@echo "... install/strip"
+	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... celestial_simulation"
+	@echo "... gengine_shared"
+	@echo "... gengine_static"
+	@echo "... server"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... src/BarnesHutSimulator.o"
+	@echo "... src/BarnesHutSimulator.i"
+	@echo "... src/BarnesHutSimulator.s"
+	@echo "... src/NewtonianSimulator.o"
+	@echo "... src/NewtonianSimulator.i"
+	@echo "... src/NewtonianSimulator.s"
+	@echo "... src/OctreeNode.o"
+	@echo "... src/OctreeNode.i"
+	@echo "... src/OctreeNode.s"
 .PHONY : help
 
 
