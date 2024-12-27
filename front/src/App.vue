@@ -15,6 +15,20 @@
       <button @click="toggleSimulation" :class="{ active: isSimulating }">
         {{ isSimulating ? '暂停模拟' : '开始模拟' }}
       </button>
+
+      <!-- 添加导入导出按钮 -->
+      <div class="io-controls">
+        <button @click="exportConfig">导出配置</button>
+        <button @click="importConfig">导入配置</button>
+        <input
+          type="file"
+          ref="fileInput"
+          style="display: none"
+          accept=".json"
+          @change="handleFileUpload"
+        >
+      </div>
+
       <div class="debug-info">
         <h3>调试信息</h3>
         <div v-for="(body, name) in debugInfo" :key="name">
@@ -130,6 +144,15 @@ export default {
           bodyData.position[1] * scale,
           bodyData.position[2] * scale
         );
+      });
+
+      // 移除不再存在的天体
+      const newBodyNames = new Set(bodies.map(b => b.name));
+      celestialBodies.forEach((body, name) => {
+        if (!newBodyNames.has(name)) {
+          scene.remove(body);
+          celestialBodies.delete(name);
+        }
       });
     },
 
@@ -319,6 +342,75 @@ export default {
       if (renderer) {
         renderer.setSize(this.width, this.height);
       }
+    },
+
+    async exportConfig() {
+      try {
+        const response = await axios.get(
+          `http://localhost:8081/api/export-config${this.algorithm === 'barnes-hut' ? '?algorithm=barnes-hut' : ''}`
+        );
+        
+        // 创建下载
+        const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'solar-system-config.json';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error('Error exporting config:', error);
+      }
+    },
+
+    importConfig() {
+      this.$refs.fileInput.click();
+    },
+
+    async handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const config = JSON.parse(e.target.result);
+          
+          // 发送配置到服务器
+          await axios.post(
+            `http://localhost:8081/api/import-config${this.algorithm === 'barnes-hut' ? '?algorithm=barnes-hut' : ''}`,
+            config
+          );
+          
+          // 重新获取系统状态并更新场景
+          await this.fetchInitialState();
+
+          // 清除现有的天体
+          celestialBodies.forEach((body) => {
+            scene.remove(body);
+          });
+          celestialBodies.clear();
+
+          // 重新创建天体
+          if (config.bodies) {
+            this.updateCelestialBodies(config.bodies);
+          }
+
+          // 重置相机位置以便查看新的配置
+          if (camera) {
+            camera.position.set(0, 200, 200);
+            camera.lookAt(0, 0, 0);
+          }
+        };
+        reader.readAsText(file);
+      } catch (error) {
+        console.error('Error importing config:', error);
+      } finally {
+        // 清除文件输入，允许重复上传同一个文件
+        event.target.value = '';
+      }
     }
   },
   beforeUnmount() {
@@ -440,5 +532,26 @@ button.active {
 .debug-info p {
   margin: 2px 0;
   font-size: 12px;
+}
+
+.io-controls {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.io-controls button {
+  flex: 1;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.io-controls button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
 }
 </style>

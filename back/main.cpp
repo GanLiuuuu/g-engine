@@ -77,15 +77,51 @@ int main() {
     initializeSolarSystem(*newtonianSimulator);
     initializeSolarSystem(*barnesHutSimulator);
 
-    // 配置CORS和其他HTTP头
-    svr.set_default_headers({
-        {"Access-Control-Allow-Origin", "*"},
-        {"Access-Control-Allow-Methods", "GET, POST, OPTIONS"},
-        {"Access-Control-Allow-Headers", "Content-Type"}
+    // 设置全局CORS头处理函数
+    auto setCorsHeaders = [](httplib::Response& res) {
+        if (!res.has_header("Access-Control-Allow-Origin")) {
+            res.set_header("Access-Control-Allow-Origin", "*");
+            res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            res.set_header("Access-Control-Allow-Headers", "Content-Type");
+        }
+    };
+
+    // 处理OPTIONS预检请求
+    svr.Options(".*", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type");
+        res.set_header("Access-Control-Max-Age", "86400"); // 24小时
+        return res.status = 204; // No Content
+    });
+
+    // 添加错误处理
+    svr.set_error_handler([&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
+        nlohmann::json error = {
+            {"error", "Internal Server Error"},
+            {"status", res.status}
+        };
+        res.set_content(error.dump(), "application/json");
+    });
+
+    // 添加异常处理
+    svr.set_exception_handler([&setCorsHeaders](const httplib::Request& req, httplib::Response& res, std::exception_ptr ep) {
+        setCorsHeaders(res);
+        try {
+            std::rethrow_exception(ep);
+        } catch (const std::exception& e) {
+            nlohmann::json error = {
+                {"error", e.what()},
+                {"status", 500}
+            };
+            res.set_content(error.dump(), "application/json");
+        }
     });
 
     // 获取系统状态的API
-    svr.Get("/api/system-state", [](const httplib::Request& req, httplib::Response& res) {
+    svr.Get("/api/system-state", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
         bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
         auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
         
@@ -94,24 +130,23 @@ int main() {
     });
 
     // 模拟步进的API
-    svr.Post("/api/simulate", [](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/api/simulate", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
         bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
         auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
 
-        // 执行模拟步进
         simulator.step();
         
-        // 返回更新后的状态
         nlohmann::json state = simulator.getSystemState();
         res.set_content(state.dump(), "application/json");
     });
 
     // 重置模拟的API
-    svr.Post("/api/reset", [](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/api/reset", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
         bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
         auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
 
-        // 重置模拟器
         simulator.reset();
         initializeSolarSystem(simulator);
         
@@ -120,13 +155,57 @@ int main() {
     });
 
     // 配置模拟参数的API
-    svr.Post("/api/configure", [](const httplib::Request& req, httplib::Response& res) {
+    svr.Post("/api/configure", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
         try {
             auto config = nlohmann::json::parse(req.body);
             
-            
             newtonianSimulator->configure(config);
             barnesHutSimulator->configure(config);
+            
+            res.set_content("{\"status\": \"success\"}", "application/json");
+        } catch (const std::exception& e) {
+            res.set_content(
+                nlohmann::json({{"error", e.what()}}).dump(),
+                "application/json"
+            );
+            res.status = 400;
+        }
+    });
+
+    // 导出系统配置的API
+    svr.Get("/api/export-config", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
+        nlohmann::json config;
+        
+        config["simulationConfig"] = SimulationConfig::getInstance().toJson();
+        
+        bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
+        auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
+        config["bodies"] = simulator.getSystemState();
+        
+        res.set_content(config.dump(4), "application/json");
+    });
+
+    // 导入系统配置的API
+    svr.Post("/api/import-config", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
+        try {
+            auto config = nlohmann::json::parse(req.body);
+            
+            if (config.contains("simulationConfig")) {
+                SimulationConfig::getInstance().loadFromJson(config["simulationConfig"]);
+            }
+            
+            if (config.contains("bodies")) {
+                bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
+                auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
+                
+                simulator.clear();
+                for (const auto& bodyData : config["bodies"]) {
+                    simulator.addBody(CelestialBody::fromJson(bodyData));
+                }
+            }
             
             res.set_content("{\"status\": \"success\"}", "application/json");
         } catch (const std::exception& e) {
