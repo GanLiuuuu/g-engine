@@ -1105,7 +1105,7 @@ CMakeFiles/server.dir/main.cpp.o: /Users/liugan/g-engine/back/main.cpp \
   /Users/liugan/g-engine/back/include/NewtonianSimulator.hpp \
   /Users/liugan/g-engine/back/include/ISimulator.hpp \
   /Users/liugan/g-engine/back/include/CelestialBody.hpp \
-  /Users/liugan/g-engine/back/include/Vector3D.hpp \
+  /Users/liugan/g-engine/back/include/Config.hpp \
   /opt/homebrew/include/nlohmann/json.hpp \
   /opt/homebrew/include/nlohmann/adl_serializer.hpp \
   /opt/homebrew/include/nlohmann/detail/abi_macros.hpp \
@@ -1153,6 +1153,6 @@ CMakeFiles/server.dir/main.cpp.o: /Users/liugan/g-engine/back/main.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/any \
   /opt/homebrew/include/nlohmann/detail/macro_unscope.hpp \
   /opt/homebrew/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+  /Users/liugan/g-engine/back/include/Vector3D.hpp \
   /Users/liugan/g-engine/back/include/BarnesHutSimulator.hpp \
-  /Users/liugan/g-engine/back/include/OctreeNode.hpp \
-  /Users/liugan/g-engine/back/include/Config.hpp
+  /Users/liugan/g-engine/back/include/OctreeNode.hpp

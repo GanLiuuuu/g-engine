@@ -12,6 +12,46 @@
           Barnes-Hut算法 (O(n log n))
         </label>
       </div>
+
+      <!-- 时间控制面板 -->
+      <div class="time-control">
+        <h3>时间控制</h3>
+        <div class="time-direction">
+          <label>
+            <input type="radio" v-model="timeDirection" value="forward" :disabled="isSimulating">
+            正向推进
+          </label>
+          <label>
+            <input type="radio" v-model="timeDirection" value="backward" :disabled="isSimulating">
+            逆向反演
+          </label>
+        </div>
+        
+        <div class="time-step">
+          <label>时间步长 (秒)</label>
+          <input 
+            type="number" 
+            v-model.number="timeStep" 
+            :min="1" 
+            :max="86400" 
+            :disabled="isSimulating"
+          >
+        </div>
+
+        <div class="time-jump">
+          <label>时间跳转 (天)</label>
+          <div class="time-jump-controls">
+            <input 
+              type="number" 
+              v-model.number="jumpDays" 
+              :min="0" 
+              :disabled="isSimulating"
+            >
+            <button @click="jumpTime" :disabled="isSimulating">跳转</button>
+          </div>
+        </div>
+      </div>
+
       <button @click="toggleSimulation" :class="{ active: isSimulating }">
         {{ isSimulating ? '暂停模拟' : '开始模拟' }}
       </button>
@@ -89,7 +129,13 @@ export default {
     async simulateStep() {
       try {
         console.log('Simulating step...');
-        const response = await axios.post(`http://localhost:8081/api/simulate${this.algorithm === 'barnes-hut' ? '?algorithm=barnes-hut' : ''}`);
+        const response = await axios.post(
+          `http://localhost:8081/api/simulate${this.algorithm === 'barnes-hut' ? '?algorithm=barnes-hut' : ''}`,
+          {
+            timeDirection: this.timeDirection,
+            timeStep: this.timeStep
+          }
+        );
         console.log('Received simulation data:', response.data);
         this.updateCelestialBodies(response.data);
         this.updateDebugInfo(response.data);
@@ -411,6 +457,23 @@ export default {
         // 清除文件输入，允许重复上传同一个文件
         event.target.value = '';
       }
+    },
+
+    async jumpTime() {
+      if (this.jumpDays <= 0) return;
+      
+      try {
+        const response = await axios.post(
+          `http://localhost:8081/api/jump-time${this.algorithm === 'barnes-hut' ? '?algorithm=barnes-hut' : ''}`,
+          {
+            days: this.jumpDays
+          }
+        );
+        this.updateCelestialBodies(response.data);
+        this.updateDebugInfo(response.data);
+      } catch (error) {
+        console.error('Error jumping time:', error);
+      }
     }
   },
   beforeUnmount() {
@@ -553,5 +616,71 @@ button.active {
 
 .io-controls button:hover {
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.time-control {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.time-control h3 {
+  margin: 0 0 10px 0;
+  color: #4CAF50;
+}
+
+.time-direction {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.time-direction label {
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.time-step {
+  margin-bottom: 15px;
+}
+
+.time-step label {
+  display: block;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.time-step input,
+.time-jump input {
+  width: 100%;
+  padding: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 4px;
+}
+
+.time-jump label {
+  display: block;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.time-jump-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.time-jump-controls input {
+  flex: 1;
+}
+
+.time-jump-controls button {
+  padding: 5px 10px;
 }
 </style>

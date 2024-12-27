@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Config.hpp"
 #include "Vector3D.hpp"
 #include <string>
 #include <memory>
@@ -39,10 +39,13 @@ public:
 
     // 更新状态
     virtual void updateState(double dt) {
+        const auto& config = SimulationConfig::getInstance();
+        double effectiveTimeStep = config.timeDirectionForward ? dt : -dt;
+
         Vector3D old_position = position_;
-        Vector3D half_velocity = velocity_ + acceleration_ * (dt * 0.5);
-        position_ = position_ + half_velocity * dt;
-        velocity_ = half_velocity + acceleration_ * (dt * 0.5);
+        Vector3D half_velocity = velocity_ + acceleration_ * (effectiveTimeStep * 0.5);
+        position_ = position_ + half_velocity * effectiveTimeStep;
+        velocity_ = half_velocity + acceleration_ * (effectiveTimeStep * 0.5);
     }
 
     // JSON序列化

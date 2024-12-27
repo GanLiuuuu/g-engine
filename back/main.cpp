@@ -73,51 +73,22 @@ void initializeSolarSystem(ISimulator& simulator) {
 int main() {
     httplib::Server svr;
 
-    // 初始化两种模拟器
-    initializeSolarSystem(*newtonianSimulator);
-    initializeSolarSystem(*barnesHutSimulator);
-
-    // 设置全局CORS头处理函数
+    // 设置CORS头
     auto setCorsHeaders = [](httplib::Response& res) {
-        if (!res.has_header("Access-Control-Allow-Origin")) {
-            res.set_header("Access-Control-Allow-Origin", "*");
-            res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-            res.set_header("Access-Control-Allow-Headers", "Content-Type");
-        }
-    };
-
-    // 处理OPTIONS预检请求
-    svr.Options(".*", [](const httplib::Request& req, httplib::Response& res) {
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         res.set_header("Access-Control-Allow-Headers", "Content-Type");
-        res.set_header("Access-Control-Max-Age", "86400"); // 24小时
-        return res.status = 204; // No Content
+    };
+
+    // 处理OPTIONS请求
+    svr.Options("/(.*)", [&setCorsHeaders](const httplib::Request&, httplib::Response& res) {
+        setCorsHeaders(res);
+        res.set_content("", "text/plain");
     });
 
-    // 添加错误处理
-    svr.set_error_handler([&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
-        setCorsHeaders(res);
-        nlohmann::json error = {
-            {"error", "Internal Server Error"},
-            {"status", res.status}
-        };
-        res.set_content(error.dump(), "application/json");
-    });
-
-    // 添加异常处理
-    svr.set_exception_handler([&setCorsHeaders](const httplib::Request& req, httplib::Response& res, std::exception_ptr ep) {
-        setCorsHeaders(res);
-        try {
-            std::rethrow_exception(ep);
-        } catch (const std::exception& e) {
-            nlohmann::json error = {
-                {"error", e.what()},
-                {"status", 500}
-            };
-            res.set_content(error.dump(), "application/json");
-        }
-    });
+    // 初始化两种模拟器
+    initializeSolarSystem(*newtonianSimulator);
+    initializeSolarSystem(*barnesHutSimulator);
 
     // 获取系统状态的API
     svr.Get("/api/system-state", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
@@ -132,13 +103,65 @@ int main() {
     // 模拟步进的API
     svr.Post("/api/simulate", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
         setCorsHeaders(res);
-        bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
-        auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
+        try {
+            bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
+            auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
+            auto& config = SimulationConfig::getInstance();
 
-        simulator.step();
-        
-        nlohmann::json state = simulator.getSystemState();
-        res.set_content(state.dump(), "application/json");
+            // 解析请求体中的时间控制参数
+            if (!req.body.empty()) {
+                auto params = nlohmann::json::parse(req.body);
+                if (params.contains("timeDirection")) {
+                    config.timeDirectionForward = (params["timeDirection"] == "forward");
+                }
+                if (params.contains("timeStep")) {
+                    config.timeStep = params["timeStep"].get<double>();
+                }
+            }
+
+            simulator.step();
+            
+            nlohmann::json state = simulator.getSystemState();
+            res.set_content(state.dump(), "application/json");
+        } catch (const std::exception& e) {
+            res.set_content(
+                nlohmann::json({{"error", e.what()}}).dump(),
+                "application/json"
+            );
+            res.status = 400;
+        }
+    });
+
+    // 时间跳转API
+    svr.Post("/api/jump-time", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
+        try {
+            bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
+            auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
+            auto& config = SimulationConfig::getInstance();
+
+            auto params = nlohmann::json::parse(req.body);
+            if (!params.contains("days")) {
+                throw std::runtime_error("Missing 'days' parameter");
+            }
+
+            double days = params["days"].get<double>();
+            int steps = static_cast<int>((days * 24 * 3600) / config.timeStep);
+
+            // 执行多步模拟
+            for (int i = 0; i < steps; ++i) {
+                simulator.step();
+            }
+
+            nlohmann::json state = simulator.getSystemState();
+            res.set_content(state.dump(), "application/json");
+        } catch (const std::exception& e) {
+            res.set_content(
+                nlohmann::json({{"error", e.what()}}).dump(),
+                "application/json"
+            );
+            res.status = 400;
+        }
     });
 
     // 重置模拟的API
@@ -184,7 +207,7 @@ int main() {
         auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
         config["bodies"] = simulator.getSystemState();
         
-        res.set_content(config.dump(4), "application/json");
+        res.set_content(config.dump(2), "application/json");
     });
 
     // 导入系统配置的API
