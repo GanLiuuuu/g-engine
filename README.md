@@ -59,7 +59,7 @@ npm install
 1. 启动后端服务器：
 ```bash
 cd back/build
-./celestial_simulation
+./server
 ```
 
 2. 在新的终端窗口中启动前端开发服务器：
