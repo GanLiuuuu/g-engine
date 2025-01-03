@@ -1,7 +1,7 @@
 <template>
   <div class="universe">
     <div id="canvas-container"></div>
-    <div class="control-panel">
+    <el-scrollbar class="control-panel">
       <div class="algorithm-selector">
         <label>
           <input type="radio" v-model="algorithm" value="newton" :disabled="isSimulating">
@@ -50,6 +50,16 @@
         </div>
       </div>
 
+      <!-- 轨迹控制面板 -->
+      <div class="field-control">
+        <h3>天体轨迹</h3>
+        <div class="field-toggle">
+          <button @click="toggleTrajectories" :class="{ active: showTrajectories }">
+            {{ showTrajectories ? '隐藏轨迹' : '显示轨迹' }}
+          </button>
+        </div>
+      </div>
+
       <!-- 时间控制面板 -->
       <div class="time-control">
         <h3>时间控制</h3>
@@ -89,9 +99,11 @@
         </div>
       </div>
 
-      <button @click="toggleSimulation" :class="{ active: isSimulating }">
-        {{ isSimulating ? '暂停模拟' : '开始模拟' }}
-      </button>
+      <div style="display: flex">
+        <button @click="toggleSimulation" :class="{ active: isSimulating }" style="width: 100%;">
+          {{ isSimulating ? '暂停模拟' : '开始模拟' }}
+        </button>
+      </div>
 
       <!-- 添加导入导出按钮 -->
       <div class="io-controls">
@@ -115,7 +127,7 @@
           <p>加速度: {{ formatVector(body.acceleration) }}</p>
         </div>
       </div>
-    </div>
+    </el-scrollbar>
   </div>
 </template>
 
@@ -136,6 +148,7 @@ const timeDirection = ref('forward');
 const timeStep = ref(3600);
 const jumpDays = ref(0);
 const showGravitationalField = ref(false);
+const showTrajectories = ref(false); // 新增：控制是否显示轨迹
 const fieldArrows = ref([]); // 存储引力场箭头对象
 const fieldResolution = ref(8);
 const fieldSizeAU = ref(3);
@@ -145,6 +158,9 @@ const fieldArrowColor = ref('#00ff00'); // 使用十六进制颜色表示
 
 // 存储天体对象的映射
 const celestialBodies = new Map();
+
+// 存储轨迹线的映射
+const trajectories = new Map();
 
 // Three.js 相关变量
 let scene = null;
@@ -239,6 +255,42 @@ const createCelestialBodyMaterial = (bodyName) => {
   }
 };
 
+// 创建轨迹线
+const createTrajectory = (bodyName) => {
+  const geometry = new THREE.BufferGeometry();
+  const maxPoints = 1000; // 最大轨迹点数
+  const positions = new Float32Array(maxPoints * 3); // 每个点有x, y, z
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setDrawRange(0, 0); // 初始不绘制任何点
+
+  const material = new THREE.LineBasicMaterial({
+    color: 0xffffff, // 轨迹颜色，可以根据需要修改
+    transparent: true,
+    opacity: 0.6
+  });
+
+  const line = new THREE.Line(geometry, material);
+  scene.add(line);
+  trajectories.set(bodyName, { line, positions, currentIndex: 0, maxPoints });
+};
+
+// 更新轨迹线
+const updateTrajectory = (bodyName, position) => {
+  const traj = trajectories.get(bodyName);
+  if (!traj) return;
+
+  const { positions, currentIndex, maxPoints } = traj;
+
+  positions[currentIndex * 3] = position.x;
+  positions[currentIndex * 3 + 1] = position.y;
+  positions[currentIndex * 3 + 2] = position.z;
+
+  traj.currentIndex = (currentIndex + 1) % maxPoints;
+  const drawCount = Math.min(traj.currentIndex, maxPoints);
+  traj.line.geometry.setDrawRange(0, drawCount);
+  traj.line.geometry.attributes.position.needsUpdate = true;
+};
+
 // 更新场景中的天体
 const updateCelestialBodies = (bodies) => {
   bodies.forEach(bodyData => {
@@ -256,23 +308,43 @@ const updateCelestialBodies = (bodies) => {
       body = new THREE.Mesh(geometry, material);
       scene.add(body);
       celestialBodies.set(bodyData.name, body);
+
+      // 如果显示轨迹，则创建轨迹线
+      if (showTrajectories.value) {
+        createTrajectory(bodyData.name);
+      }
     }
 
     // 调整位置缩放比例
     const scale = 1e-9;
-    body.position.set(
+    const pos = new THREE.Vector3(
       bodyData.position[0] * scale,
       bodyData.position[1] * scale,
       bodyData.position[2] * scale
     );
+    body.position.copy(pos);
+
+    // 更新轨迹
+    if (showTrajectories.value) {
+      updateTrajectory(bodyData.name, pos);
+    }
   });
 
-  // 移除不再存在的天体
+  // 移除不再存在的天体及其轨迹
   const newBodyNames = new Set(bodies.map(b => b.name));
   celestialBodies.forEach((body, name) => {
     if (!newBodyNames.has(name)) {
       scene.remove(body);
       celestialBodies.delete(name);
+
+      // 移除对应的轨迹线
+      const traj = trajectories.get(name);
+      if (traj) {
+        scene.remove(traj.line);
+        traj.line.geometry.dispose();
+        traj.line.material.dispose();
+        trajectories.delete(name);
+      }
     }
   });
 };
@@ -478,11 +550,11 @@ const exportConfig = async () => {
 
 // 触发文件输入以导入配置
 const importConfig = () => {
-  fileInputRef.value.click();
+  fileInput.value.click();
 };
 
 // 隐藏的文件输入引用
-const fileInputRef = ref(null);
+const fileInput = ref(null);
 
 // 处理文件上传
 const handleFileUpload = async (event) => {
@@ -503,11 +575,18 @@ const handleFileUpload = async (event) => {
       // 重新获取系统状态并更新场景
       await fetchInitialState();
 
-      // 清除现有的天体
+      // 清除现有的天体和轨迹
       celestialBodies.forEach((body) => {
         scene.remove(body);
       });
       celestialBodies.clear();
+
+      trajectories.forEach((traj) => {
+        scene.remove(traj.line);
+        traj.line.geometry.dispose();
+        traj.line.material.dispose();
+      });
+      trajectories.clear();
 
       // 重新创建天体
       if (config.bodies) {
@@ -567,6 +646,29 @@ const toggleGravitationalField = async () => {
       clearInterval(simulationInterval.value);
       simulationInterval.value = setInterval(simulateStep, 1000);
     }
+  }
+};
+
+// 切换轨迹可视化
+const toggleTrajectories = () => {
+  showTrajectories.value = !showTrajectories.value;
+
+  if (showTrajectories.value) {
+    // 为现有天体创建轨迹线
+    celestialBodies.forEach((body, name) => {
+      if (!trajectories.has(name)) {
+        createTrajectory(name);
+      }
+    });
+  } else {
+    // 移除所有轨迹线
+    // eslint-disable-next-line
+    trajectories.forEach((traj, name) => {
+      scene.remove(traj.line);
+      traj.line.geometry.dispose();
+      traj.line.material.dispose();
+    });
+    trajectories.clear();
   }
 };
 
@@ -683,13 +785,6 @@ const updateGravitationalField = async () => {
   }
 };
 
-// 更新引力场大小
-const updateFieldSize = () => {
-  fieldSize.value = fieldSizeAU.value * 1.496e11;  // 使用准确的天文单位转换
-  if (showGravitationalField.value) {
-    updateGravitationalField();
-  }
-};
 
 // 监听算法变化以更新引力场
 watch(algorithm, () => {
@@ -728,6 +823,13 @@ onBeforeUnmount(() => {
     scene.remove(body);
   });
   celestialBodies.clear();
+
+  trajectories.forEach((traj) => {
+    scene.remove(traj.line);
+    traj.line.geometry.dispose();
+    traj.line.material.dispose();
+  });
+  trajectories.clear();
 
   scene = null;
   camera = null;
@@ -849,6 +951,14 @@ button.active {
 
 .io-controls button:hover {
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.trajectory-control{
+  margin-top: 20px;
+}
+
+.trajectory-toggle {
+  margin-bottom: 10px;
 }
 
 .time-control {
