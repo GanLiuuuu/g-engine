@@ -1,0 +1,27 @@
+{
+  "simulationConfig": {
+    "gravityConstant": 6.6743e-11,
+    "timeStep": 360000,
+    "timeDirectionForward": true,
+    "barnesHutTheta": 0.5,
+    "universeSize": 1e12
+  },
+  "bodies": [
+    {
+      "name": "BigBody",
+      "mass": 5e30,
+      "radius": 2e7,
+      "position": [-1e11, 0, 0],
+      "velocity": [0, 0, 0],
+      "acceleration": [0, 0, 0]
+    },
+    {
+      "name": "SmallBody",
+      "mass": 5e30,
+      "radius": 2e7,
+      "position": [1e11, 0, 0],
+      "velocity": [-1000, 0, 0],
+      "acceleration": [0, 0, 0]
+    }
+  ]
+}

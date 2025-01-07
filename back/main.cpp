@@ -167,6 +167,33 @@ int main() {
         res.set_content(state.dump(), "application/json");
     });
 
+    svr.Post("/api/remove", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
+        bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
+        auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
+
+        try {
+            auto params = nlohmann::json::parse(req.body);
+
+            if (!params.contains("name")) {
+                throw std::runtime_error("Missing 'name' field");
+            }
+
+            std::string name = params["name"].get<std::string>();
+
+            simulator.removeBody(name);
+
+            nlohmann::json state = simulator.getSystemState();
+            res.set_content(state.dump(), "application/json");
+            res.status = 200;
+        } catch (const std::exception &e) {
+            nlohmann::json err;
+            err["error"] = e.what();
+            res.set_content(err.dump(), "application/json");
+            res.status = 400;
+        }
+    });
+
     svr.Post("/api/configure", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
         setCorsHeaders(res);
         try {
@@ -253,6 +280,20 @@ int main() {
             );
             res.status = 400;
         }
+    });
+
+    svr.Get("/api/events", [&setCorsHeaders](const httplib::Request& req, httplib::Response& res) {
+        setCorsHeaders(res);
+
+        bool useBarnesHut = req.has_param("algorithm") && req.get_param_value("algorithm") == "barnes-hut";
+        auto& simulator = useBarnesHut ? *barnesHutSimulator : *newtonianSimulator;
+
+        auto events = simulator.getEvents();
+
+        nlohmann::json result;
+        result["events"] = events;
+
+        res.set_content(result.dump(), "application/json");
     });
 
     svr.listen("localhost", 8081);

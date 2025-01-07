@@ -64,6 +64,8 @@ public:
         
         return fieldData;
     }
+
+    virtual std::vector<nlohmann::json> getEvents() = 0;
 };
 
 } // namespace GEngine 

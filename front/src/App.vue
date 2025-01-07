@@ -127,6 +127,19 @@
           <p>加速度: {{ formatVector(body.acceleration) }}</p>
         </div>
       </div>
+
+      <div class="debug-info">
+        <h3>事件日志</h3>
+        <!-- 可以增加一个手动刷新按钮 -->
+        <button @click="fetchEvents" :disabled="isSimulating">刷新事件日志</button>
+
+        <ul>
+          <li v-for="(ev, index) in events" :key="index">
+            <!-- 简单示例: 打印事件类型与message -->
+            [{{ ev.type }}] {{ ev.message }}
+          </li>
+        </ul>
+      </div>
     </el-scrollbar>
   </div>
 </template>
@@ -144,6 +157,7 @@ const isSimulating = ref(false);
 const simulationInterval = ref(null);
 const algorithm = ref('newton'); // 默认使用牛顿算法
 const debugInfo = reactive({});
+let events = reactive([]);
 const timeDirection = ref('forward');
 const timeStep = ref(3600);
 const jumpDays = ref(0);
@@ -363,6 +377,105 @@ const updateDebugInfoFn = (bodies) => {
   });
 };
 
+// 获取事件日志
+const fetchEvents = async () => {
+  try {
+    // 根据选择的算法来决定是否加上 "?algorithm=barnes-hut"
+    const response = await axios.get(`http://localhost:8081/api/events${algorithm.value === 'barnes-hut' ? '?algorithm=barnes-hut' : ''}`);
+    events = response.data.events;
+
+    // const mockEvents = [
+    //   {
+    //     type: 'collision',
+    //     time: 123456,
+    //     bodies: ['Earth', 'Mars'],
+    //     distance: 1.23e6,
+    //     message: 'Collision occurred between Earth and Mars!'
+    //   },
+    //   {
+    //     type: 'eclipse',
+    //     time: 789012,
+    //     bodies: ['Sun', 'Moon', 'Earth'],
+    //     distance: 3.45e5,
+    //     message: 'Eclipse event: Moon shadow on Earth.'
+    //   }
+    // ];
+    // // 将这些假数据直接赋给 events
+    // events = mockEvents;
+    console.log('事件日志:', events);
+
+  } catch (error) {
+    console.error('获取事件日志时出错:', error);
+  }
+};
+
+const removeBody = async (bodyName) => {
+  try {
+    const response = await axios.post(
+        `http://localhost:8081/api/remove${algorithm.value === 'barnes-hut' ? '?algorithm=barnes-hut' : ''}`,
+        {
+          name: bodyName
+        }
+    );
+    updateCelestialBodies(response.data);
+    updateDebugInfoFn(response.data);
+  } catch (error) {
+    console.error('跳跃时间时出错:', error);
+  }
+};
+
+//前端检测碰撞
+const detectCollisionsFrontEnd = () => {
+  console.log("执行检测碰撞方法")
+
+  // 将 celestialBodies (Map) 转成数组，方便双重循环
+  const bodiesArray = Array.from(celestialBodies.entries());
+  // bodiesArray[i] = [bodyName, mesh]
+
+  const toRemove = new Set(); // 用于存储需要移除的天体名称
+
+  for (let i = 0; i < bodiesArray.length; i++) {
+    for (let j = i + 1; j < bodiesArray.length; j++) {
+      const [nameA, meshA] = bodiesArray[i];
+      const [nameB, meshB] = bodiesArray[j];
+
+      // 通过 mesh.geometry.parameters.radius 拿到可视半径
+      const radiusA = meshA.geometry?.parameters?.radius || 0;
+      const radiusB = meshB.geometry?.parameters?.radius || 0;
+
+      const posA = meshA.position;
+      const posB = meshB.position;
+
+      const dx = posA.x - posB.x;
+      const dy = posA.y - posB.y;
+      const dz = posA.z - posB.z;
+      const distSq = dx * dx + dy * dy + dz * dz;
+
+      const collisionDist = radiusA + radiusB;
+
+      if (distSq < collisionDist * collisionDist) {
+        console.log("发生碰撞----------------------------------------------------")
+        events.push({
+          type: "collision",
+          time: new Date().toLocaleTimeString(),
+          bodies: [nameA, nameB],
+          message: `${nameA} 和 ${nameB} 发生碰撞！`
+        });
+
+        toRemove.add(nameA);
+        toRemove.add(nameB);
+      }
+    }
+  }
+
+  if (toRemove.size > 0) {
+    toRemove.forEach(name => {
+      removeBody(name)
+      console.log("移除天体" + name);
+    });
+  }
+};
+
 // 获取初始系统状态
 const fetchInitialState = async () => {
   try {
@@ -388,7 +501,9 @@ const simulateStep = async () => {
     console.log('收到模拟数据:', response.data);
     updateCelestialBodies(response.data);
     updateDebugInfoFn(response.data);
-    
+    // await fetchEvents();
+    detectCollisionsFrontEnd();
+
     // 如果引力场可视化开启，则更新引力场
     if (showGravitationalField.value) {
       await updateGravitationalField();
@@ -396,6 +511,7 @@ const simulateStep = async () => {
   } catch (error) {
     console.error('模拟步骤时出错:', error);
   }
+
 };
 
 // 切换模拟状态
@@ -403,7 +519,7 @@ const toggleSimulation = () => {
   isSimulating.value = !isSimulating.value;
   if (isSimulating.value) {
     // 根据引力场可视化状态设置更新间隔
-    const updateInterval = showGravitationalField.value ? 500 : 1000;
+    const updateInterval = showGravitationalField.value ? 25 : 50;
     simulationInterval.value = setInterval(simulateStep, updateInterval);
   } else {
     clearInterval(simulationInterval.value);
@@ -434,6 +550,12 @@ const init = () => {
   
   const bgTexture = new THREE.CanvasTexture(canvas);
   scene.background = bgTexture;
+
+  // const loader = new THREE.TextureLoader();
+  // loader.load('/Background2.jpg', (texture) => {
+  //   scene.background = texture;
+  //   console.log('背景贴图加载成功--------------------------------');
+  // });
 
   // 设置相机参数
   camera = new THREE.PerspectiveCamera(
@@ -855,9 +977,11 @@ onBeforeUnmount(() => {
 }
 
 .control-panel {
+  box-sizing: border-box;
   position: absolute;
   top: 20px;
   right: 20px;
+  bottom: 20px;
   padding: 15px;
   background-color: rgba(0, 0, 0, 0.7);
   border-radius: 8px;
@@ -908,6 +1032,7 @@ button.active {
 
 .debug-info {
   margin-top: 15px;
+  margin-bottom: 15px;
   padding: 10px;
   background-color: rgba(0, 0, 0, 0.8);
   border-radius: 4px;

@@ -42,6 +42,9 @@ void BarnesHutSimulator::step() {
     for (size_t i = 0; i < bodies_.size(); ++i) {
         bodies_[i]->updateState(config.timeStep);
     }
+
+    // 3. 碰撞检测
+    detectCollisions();
 }
 
 void BarnesHutSimulator::reset() {
@@ -66,6 +69,32 @@ std::vector<std::shared_ptr<CelestialBody>> BarnesHutSimulator::getBodies() cons
 
 void BarnesHutSimulator::configure(const nlohmann::json& config) {
     SimulationConfig::getInstance().loadFromJson(config);
+}
+
+void BarnesHutSimulator::detectCollisions() {
+    for (size_t i = 0; i < bodies_.size(); ++i) {
+        for (size_t j = i + 1; j < bodies_.size(); ++j) {
+            auto bodyA = bodies_[i];
+            auto bodyB = bodies_[j];
+
+            Vector3D diff = bodyA->getPosition() - bodyB->getPosition();
+            double distance = diff.magnitude();
+            double collisionDist = bodyA->getRadius() + bodyB->getRadius();
+
+            if (distance < collisionDist) {
+                nlohmann::json collisionEvent;
+                collisionEvent["type"] = "collision";
+                collisionEvent["time"] = 0; 
+                collisionEvent["bodies"] = { bodyA->getName(), bodyB->getName() };
+                collisionEvent["distance"] = distance;
+                collisionEvent["message"] =
+                    "Collision occurred between " + bodyA->getName() + " and " + bodyB->getName();
+
+                eventLog.push_back(collisionEvent);
+
+            }
+        }
+    }
 }
 
 } // namespace GEngine 

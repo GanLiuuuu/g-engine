@@ -12,6 +12,7 @@ class BarnesHutSimulator : public ISimulator {
 private:
     std::vector<std::shared_ptr<CelestialBody>> bodies_;
     std::unique_ptr<OctreeNode> root_;
+    std::vector<nlohmann::json> eventLog; // 存储事件
 
     void buildOctree();
 
@@ -69,6 +70,15 @@ public:
 
         calculateField(root_.get(), position);
         return totalField;
+    }
+
+    //碰撞检测
+    void detectCollisions();
+
+    std::vector<nlohmann::json> getEvents() override {
+            auto temp = eventLog;
+            eventLog.clear();
+            return temp;
     }
 };
 
