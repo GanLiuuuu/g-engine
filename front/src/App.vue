@@ -103,6 +103,9 @@
         <button @click="toggleSimulation" :class="{ active: isSimulating }" style="width: 100%;">
           {{ isSimulating ? '暂停模拟' : '开始模拟' }}
         </button>
+        <button @click="toggleRecording" :class="{ active: isRecording }" style="width: 100%;">
+          {{ isRecording ? '暂停录制' : '开始录制' }}
+        </button>
       </div>
 
       <!-- 添加导入导出按钮 -->
@@ -154,6 +157,7 @@ import axios from 'axios';
 const width = ref(window.innerWidth);
 const height = ref(window.innerHeight);
 const isSimulating = ref(false);
+const isRecording = ref(false);
 const simulationInterval = ref(null);
 const algorithm = ref('newton'); // 默认使用牛顿算法
 const debugInfo = reactive({});
@@ -196,71 +200,80 @@ const createCelestialBodyMaterial = (bodyName) => {
       return new THREE.MeshBasicMaterial({
         color: 0xffff00,
         emissive: 0xffaa00,
-        emissiveIntensity: 1.5
+        emissiveIntensity: 1.5,
+        map: new THREE.TextureLoader().load('/Sun.png')
       });
     case 'Mercury':
       return new THREE.MeshStandardMaterial({
-        color: 0x8B8B83,
-        metalness: 0.6,
-        roughness: 0.4,
-        emissive: 0x8B8B83,
-        emissiveIntensity: 0.2
+        // color: 0x8B8B83,
+        // metalness: 0.6,
+        // roughness: 0.4,
+        // emissive: 0x8B8B83,
+        // emissiveIntensity: 0.2,
+        map: new THREE.TextureLoader().load('/Mercury.png')
       });
     case 'Venus':
       return new THREE.MeshStandardMaterial({
-        color: 0xE7C697,
-        metalness: 0.3,
-        roughness: 0.6,
-        emissive: 0xE7C697,
-        emissiveIntensity: 0.2
+        // color: 0xE7C697,
+        // metalness: 0.3,
+        // roughness: 0.6,
+        // emissive: 0xE7C697,
+        // emissiveIntensity: 0.2
+        map: new THREE.TextureLoader().load('/Venus.jpg')
       });
     case 'Earth':
       return new THREE.MeshStandardMaterial({
-        color: 0x4169E1,
-        metalness: 0.3,
-        roughness: 0.4,
-        emissive: 0x4169E1,
-        emissiveIntensity: 0.2
+        // color: 0x4169E1,
+        // metalness: 0.3,
+        // roughness: 0.4,
+        // emissive: 0x4169E1,
+        // emissiveIntensity: 0.2,
+        map:new THREE.TextureLoader().load('/Earth.png')
       });
     case 'Mars':
       return new THREE.MeshStandardMaterial({
-        color: 0xA0522D,
-        metalness: 0.3,
-        roughness: 0.5,
-        emissive: 0xA0522D,
-        emissiveIntensity: 0.2
+        // color: 0xA0522D,
+        // metalness: 0.3,
+        // roughness: 0.5,
+        // emissive: 0xA0522D,
+        // emissiveIntensity: 0.2
+        map: new THREE.TextureLoader().load('/Mars.jpg')
       });
     case 'Jupiter':
       return new THREE.MeshStandardMaterial({
-        color: 0xDAA520,
-        metalness: 0.3,
-        roughness: 0.4,
-        emissive: 0xDAA520,
-        emissiveIntensity: 0.2
+        // color: 0xDAA520,
+        // metalness: 0.3,
+        // roughness: 0.4,
+        // emissive: 0xDAA520,
+        // emissiveIntensity: 0.2
+        map: new THREE.TextureLoader().load('/Jupiter.jpg')
       });
     case 'Saturn':
       return new THREE.MeshStandardMaterial({
-        color: 0xCD853F,
-        metalness: 0.4,
-        roughness: 0.4,
-        emissive: 0xCD853F,
-        emissiveIntensity: 0.2
+        // color: 0xCD853F,
+        // metalness: 0.4,
+        // roughness: 0.4,
+        // emissive: 0xCD853F,
+        // emissiveIntensity: 0.2
+        map: new THREE.TextureLoader().load('/Saturn.jpg')
       });
     case 'Uranus':
       return new THREE.MeshStandardMaterial({
-        color: 0x4682B4,
-        metalness: 0.5,
-        roughness: 0.3,
-        emissive: 0x4682B4,
-        emissiveIntensity: 0.2
+        // color: 0x4682B4,
+        // metalness: 0.5,
+        // roughness: 0.3,
+        // emissive: 0x4682B4,
+        // emissiveIntensity: 0.2
+        map: new THREE.TextureLoader().load('/天王星.jpg')
       });
     case 'Neptune':
       return new THREE.MeshStandardMaterial({
-        color: 0x4169E1,
-        metalness: 0.5,
-        roughness: 0.3,
-        emissive: 0x4169E1,
-        emissiveIntensity: 0.2
+        // color: 0x4169E1,
+        // metalness: 0.5,
+        // roughness: 0.3,
+        // emissive: 0x4169E1,
+        // emissiveIntensity: 0.2
+        map: new THREE.TextureLoader().load('/海王星.jpg')
       });
     default:
       return new THREE.MeshStandardMaterial({
@@ -312,7 +325,7 @@ const updateCelestialBodies = (bodies) => {
     
     if (!body) {
       // 根据天体名称调整缩放比例
-      const radiusScale = bodyData.name === 'Sun' ? 1e-8 : 1e-6;
+      const radiusScale = bodyData.name === 'Sun' ? 5e-8 : 1e-6;
       const geometry = new THREE.SphereGeometry(
         bodyData.radius * radiusScale,
         32,
@@ -526,6 +539,15 @@ const toggleSimulation = () => {
   }
 };
 
+const toggleRecording = () => {
+  if (isRecording.value) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+  isRecording.value = !isRecording.value;
+};
+
 // 初始化 Three.js 场景
 const init = () => {
   if (isInitialized) return;
@@ -631,6 +653,51 @@ const renderScene = () => {
   }
 
   requestAnimationFrame(renderScene);
+};
+
+// 模拟和录制的控制
+let mediaRecorder;
+let recordedChunks = [];
+const startRecording = () => {
+  const canvas = renderer.domElement;  // 获取 Three.js 的渲染画布
+  const stream = canvas.captureStream(60);  // 捕获流，参数是帧率
+
+  mediaRecorder = new MediaRecorder(stream, {
+    mimeType: 'video/webm; codecs=vp9'
+  });
+  recordedChunks = [];
+
+  mediaRecorder.ondataavailable = function(event) {
+    if (event.data.size > 0) {
+      recordedChunks.push(event.data);
+    }
+  };
+
+  mediaRecorder.onstop = saveVideo;
+  mediaRecorder.start();
+  toggleSimulation();
+};
+
+const stopRecording = () => {
+  mediaRecorder.stop();
+  toggleSimulation();
+};
+
+const saveVideo = () => {
+  const blob = new Blob(recordedChunks, {
+    type: "video/webm"
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = url;
+  a.download = "simulation.webm";
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }, 100);
 };
 
 // 处理窗口大小变化

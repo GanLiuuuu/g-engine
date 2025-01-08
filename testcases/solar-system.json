@@ -1,0 +1,191 @@
+{
+  "bodies": [
+    {
+      "acceleration": [
+        0,
+        0,
+        0
+      ],
+      "mass": 1.989e+30,
+      "name": "Sun",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "radius": 696340000,
+      "velocity": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "acceleration": [
+        0,
+        0,
+        0
+      ],
+      "mass": 3.285e+23,
+      "name": "Mercury",
+      "position": [
+        57900000000,
+        0,
+        0
+      ],
+      "radius": 2439700,
+      "velocity": [
+        0,
+        47870,
+        0
+      ]
+    },
+    {
+      "acceleration": [
+        0,
+        0,
+        0
+      ],
+      "mass": 4.867e+24,
+      "name": "Venus",
+      "position": [
+        108200000000,
+        0,
+        0
+      ],
+      "radius": 6051800,
+      "velocity": [
+        0,
+        35020,
+        0
+      ]
+    },
+    {
+      "acceleration": [
+        0,
+        0,
+        0
+      ],
+      "mass": 5.972e+24,
+      "name": "Earth",
+      "position": [
+        149600000000,
+        0,
+        0
+      ],
+      "radius": 6371000,
+      "velocity": [
+        0,
+        29780,
+        0
+      ]
+    },
+    {
+      "acceleration": [
+        0,
+        0,
+        0
+      ],
+      "mass": 6.39e+23,
+      "name": "Mars",
+      "position": [
+        227900000000,
+        0,
+        0
+      ],
+      "radius": 3389500,
+      "velocity": [
+        0,
+        24077,
+        0
+      ]
+    },
+    {
+      "acceleration": [
+        0,
+        0,
+        0
+      ],
+      "mass": 1.898e+27,
+      "name": "Jupiter",
+      "position": [
+        778500000000,
+        0,
+        0
+      ],
+      "radius": 69911000,
+      "velocity": [
+        0,
+        13070,
+        0
+      ]
+    },
+    {
+      "acceleration": [
+        0,
+        0,
+        0
+      ],
+      "mass": 5.683e+26,
+      "name": "Saturn",
+      "position": [
+        1434000000000,
+        0,
+        0
+      ],
+      "radius": 58232000,
+      "velocity": [
+        0,
+        9680,
+        0
+      ]
+    },
+    {
+      "acceleration": [
+        0,
+        0,
+        0
+      ],
+      "mass": 8.681e+25,
+      "name": "Uranus",
+      "position": [
+        2871000000000,
+        0,
+        0
+      ],
+      "radius": 25362000,
+      "velocity": [
+        0,
+        6800,
+        0
+      ]
+    },
+    {
+      "acceleration": [
+        0,
+        0,
+        0
+      ],
+      "mass": 1.024e+26,
+      "name": "Neptune",
+      "position": [
+        4495000000000,
+        0,
+        0
+      ],
+      "radius": 24622000,
+      "velocity": [
+        0,
+        5430,
+        0
+      ]
+    }
+  ],
+  "simulationConfig": {
+    "barnesHutTheta": 0.5,
+    "gravityConstant": 6.6743e-11,
+    "timeDirectionForward": true,
+    "timeStep": 864000,
+    "universeSize": 1000000000000
+  }
+}
