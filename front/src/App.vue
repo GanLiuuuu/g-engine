@@ -103,7 +103,7 @@
         <button @click="toggleSimulation" :class="{ active: isSimulating }" style="width: 100%;">
           {{ isSimulating ? '暂停模拟' : '开始模拟' }}
         </button>
-        <button @click="toggleRecording" :class="{ active: isRecording }" style="width: 100%;">
+        <button @click="toggleRecording" :class="{ active: isRecording }" style="width: 100%; margin-left: 10px;">
           {{ isRecording ? '暂停录制' : '开始录制' }}
         </button>
       </div>
