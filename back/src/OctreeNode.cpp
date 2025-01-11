@@ -21,14 +21,16 @@ void OctreeNode::subdivide() {
     }
 
     for (auto& body : bodies_) {
+        if(body==nullptr) continue;
         int octant = getOctant(body->getPosition());
         children_[octant]->insert(body);
     }
     bodies_.clear();
 }
 
+
 void OctreeNode::insert(std::shared_ptr<CelestialBody> body) {
-    if (bodies_.empty() && !children_[0]) {
+    if (bodies_.begin() == bodies_.end() && !children_[0]) {
         bodies_.push_back(body);
         totalMass_ = body->getMass();
         centerOfMass_ = body->getPosition();
@@ -39,8 +41,11 @@ void OctreeNode::insert(std::shared_ptr<CelestialBody> body) {
         subdivide();
     }
 
+    //if(body==nullptr) return;
     int octant = getOctant(body->getPosition());
-    children_[octant]->insert(body);
+    if (children_[octant]) {
+        children_[octant]->insert(body);
+    } 
 
     totalMass_ += body->getMass();
     centerOfMass_ = centerOfMass_ * (totalMass_ - body->getMass()) + 
@@ -49,7 +54,7 @@ void OctreeNode::insert(std::shared_ptr<CelestialBody> body) {
 }
 
 Vector3D OctreeNode::calculateForce(const CelestialBody& body) const {
-    if (bodies_.empty() && !children_[0]) {
+    if (bodies_.begin() == bodies_.end() && !children_[0]) {
         return Vector3D(0, 0, 0);
     }
 

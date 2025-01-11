@@ -31,14 +31,11 @@ void BarnesHutSimulator::buildOctree() {
 void BarnesHutSimulator::step() {
     buildOctree();
     const auto& config = SimulationConfig::getInstance();
-
-    #pragma omp parallel for
     for (size_t i = 0; i < bodies_.size(); ++i) {
         Vector3D force = root_->calculateForce(*bodies_[i]);
         bodies_[i]->setAcceleration(force * (1.0 / bodies_[i]->getMass()));
     }
 
-    #pragma omp parallel for
     for (size_t i = 0; i < bodies_.size(); ++i) {
         bodies_[i]->updateState(config.timeStep);
     }

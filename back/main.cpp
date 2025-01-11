@@ -8,7 +8,7 @@
 using namespace GEngine;
 
 std::unique_ptr<ISimulator> newtonianSimulator = std::make_unique<NewtonianSimulator>();
-std::unique_ptr<ISimulator> barnesHutSimulator = std::make_unique<BarnesHutSimulator>();
+std::unique_ptr<ISimulator> barnesHutSimulator = std::make_unique<NewtonianSimulator>();
 
 void initializeSolarSystem(ISimulator& simulator) {
     simulator.clear();
@@ -110,7 +110,6 @@ int main() {
                     config.timeStep = params["timeStep"].get<double>();
                 }
             }
-
             simulator.step();
             
             nlohmann::json state = simulator.getSystemState();
